@@ -546,19 +546,29 @@ async function migrateV2() {
 
 async function ensureAdmin() {
   try {
-    const countRow = await q.get("SELECT COUNT(*) as count FROM users WHERE role = 'admin'");
+    const getUserQuery = db.type === 'postgres' 
+      ? "SELECT COUNT(*) as count FROM users WHERE role = 'admin'"
+      : "SELECT COUNT(*) as count FROM users WHERE role = 'admin'";
+    const countRow = await db.prepare(getUserQuery).get();
     const adminCount = parseInt(countRow.count);
     if (adminCount > 0) return;
-    const totalRow = await q.get('SELECT COUNT(*) as count FROM users');
+    
+    const totalRow = await db.prepare('SELECT COUNT(*) as count FROM users').get();
     const userCount = parseInt(totalRow.count);
     if (userCount > 0) {
-      const firstUser = await q.get('SELECT id FROM users ORDER BY id ASC LIMIT 1');
-      await q.run('UPDATE users SET role = ? WHERE id = ?', ['admin', firstUser.id]);
+      const firstUser = await db.prepare('SELECT id FROM users ORDER BY id ASC LIMIT 1').get();
+      const updateQuery = db.type === 'postgres' 
+        ? 'UPDATE users SET role = $1 WHERE id = $2'
+        : 'UPDATE users SET role = ? WHERE id = ?';
+      await db.prepare(updateQuery).run('admin', firstUser.id);
       console.log(`  ✓ User ${firstUser.id} promoted to admin`);
     } else {
       const bcrypt = require('bcryptjs');
       const hash = await bcrypt.hash('admin123', 12);
-      await q.run('INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)', ['admin@armada.com', hash, 'Admin', 'admin']);
+      const insertQuery = db.type === 'postgres'
+        ? 'INSERT INTO users (email, password_hash, name, role) VALUES ($1, $2, $3, $4)'
+        : 'INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)';
+      await db.prepare(insertQuery).run('admin@armada.com', hash, 'Admin', 'admin');
       console.log('  ✓ Default admin created: admin@armada.com / admin123');
     }
   } catch (e) {
