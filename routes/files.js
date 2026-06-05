@@ -46,7 +46,7 @@ router.get('/files/:qrId', asyncWrap(async (req, res) => {
   res.json({ files });
 }));
 
-router.get('/download/:fileId', asyncWrap(async (req, res) => {
+router.get('/d/:fileId', asyncWrap(async (req, res) => {
   const fileId = parseInt(req.params.fileId);
   if (!fileId) return res.status(404).render('public-error', { message: 'File not found', code: 404 });
 

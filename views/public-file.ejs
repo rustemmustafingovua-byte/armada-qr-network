@@ -34,8 +34,8 @@
               <%= f.original_size > 1048576 ? (f.original_size / 1048576).toFixed(1) + ' MB' : f.original_size > 1024 ? (f.original_size / 1024).toFixed(1) + ' KB' : f.original_size + ' B' %>
             </p>
           </div>
-          <a href="/download/<%= f.id %><%= verified ? '?code=' + encodeURIComponent(window.__verifyCode || '') : '' %>"
-             class="btn-scale bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-xs font-medium whitespace-nowrap ml-3">
+          <a href="/d/<%= f.id %>"
+             class="btn-scale bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-xs font-medium whitespace-nowrap ml-3 download-link">
             Download
           </a>
         </div>
@@ -84,6 +84,10 @@ function verifyCode() {
       window.__verifyCode = code;
       document.getElementById('verify-section').classList.add('hidden');
       document.getElementById('content-section').classList.remove('hidden');
+      // Update all download links to include the verification code
+      document.querySelectorAll('a[href^="/d/"]').forEach(function(a) {
+        a.href = a.href.split('?')[0] + '?code=' + encodeURIComponent(code);
+      });
       loadMessages();
     } else {
       document.getElementById('verify-error').textContent = d.error || 'Invalid code';

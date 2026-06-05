@@ -74,7 +74,7 @@ app.use(helmet({
 
 // ── Compression ──
 app.use(compression({ level: 6, threshold: 128, filter: (req, res) => {
-  if (req.path.startsWith('/q/') || req.path.startsWith('/download/')) return false;
+  if (req.path.startsWith('/q/') || req.path.startsWith('/download/') || req.path.startsWith('/d/')) return false;
   return compression.filter(req, res);
 }}));
 
@@ -164,11 +164,11 @@ app.use((req, res, next) => {
 // ── Routes ──
 app.use('/', authRoutes);
 app.use('/', qrRoutes);
+app.use('/', filesRoutes);
 app.use('/', redirectRoutes);
 app.use('/', analyticsRoutes);
 app.use('/', adminRoutes);
 app.use('/', messagesRoutes);
-app.use('/', filesRoutes);
 
 app.get('/', (req, res) => res.redirect(302, '/dashboard'));
 app.get('/robots.txt', (req, res) => res.type('text/plain').send('User-agent: *\nDisallow: /'));

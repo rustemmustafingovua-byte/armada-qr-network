@@ -156,7 +156,7 @@ router.get('/download/:id', asyncWrap(async (req, res) => {
     return;
   }
 
-  res.redirect(`/download/${files[0].id}`);
+  res.redirect(`/d/${files[0].id}`);
 }));
 
 module.exports = router;
