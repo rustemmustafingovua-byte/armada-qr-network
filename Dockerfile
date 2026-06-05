@@ -9,7 +9,7 @@ RUN npm ci --only=production
 
 COPY . .
 
-RUN mkdir -p public/uploads db
+RUN mkdir -p /data/uploads /data/db
 
 EXPOSE 3000
 
