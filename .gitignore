@@ -4,3 +4,6 @@ db/*.db
 public/uploads/*
 !public/uploads/.gitkeep
 *.log
+db/*.db*
+db/*-shm
+db/*-wal
