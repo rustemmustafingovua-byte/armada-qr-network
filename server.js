@@ -115,6 +115,7 @@ app.use((req, res, next) => {
 
 app.use((req, res, next) => {
   if (!/^(GET|HEAD|OPTIONS)$/.test(req.method)) {
+    if (req.path === '/login' || req.path === '/register') return next();
     const token = req.headers['x-csrf-token'] || req.body?._csrf;
     if (!token || token !== req.cookies?._csrf) {
       const e = new Error('Invalid CSRF token');
