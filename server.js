@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
@@ -50,14 +51,7 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
-app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '0');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-  next();
-});
+app.use(compression({ level: 6, threshold: 256 }));
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -86,15 +80,43 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { error: 'Too many uploads, try later' },
+  keyGenerator: (req) => req.ip
+});
+app.use('/create', uploadLimiter);
+
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '1d',
+  maxAge: '7d',
   etag: true,
   lastModified: true
 }));
+
+const crypto = require('crypto');
+app.use((req, res, next) => {
+  if (!req.cookies?._csrf) {
+    res.cookie('_csrf', crypto.randomBytes(32).toString('hex'), { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 });
+  }
+  res.locals._csrf = req.cookies?._csrf || '';
+  next();
+});
+
+app.use((req, res, next) => {
+  if (!/^(GET|HEAD|OPTIONS)$/.test(req.method)) {
+    const token = req.headers['x-csrf-token'] || req.body?._csrf;
+    if (!token || token !== req.cookies?._csrf) {
+      if (req.xhr || req.path.startsWith('/api/')) return res.status(403).json({ error: 'Invalid CSRF token' });
+      return res.status(403).render('public-error', { message: 'Invalid session', code: 403 });
+    }
+  }
+  next();
+});
 
 app.use('/', authRoutes);
 app.use('/', qrRoutes);

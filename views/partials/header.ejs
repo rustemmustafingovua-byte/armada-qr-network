@@ -10,21 +10,32 @@
     * { -webkit-tap-highlight-color: transparent; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     .btn-scale:active { transform: scale(0.97); }
+    .fade-in { animation: fadeIn .2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .spinner { width: 18px; height: 18px; border: 2px solid #e5e7eb; border-top-color: #6366f1; border-radius: 50%; animation: spin .6s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+<script>
+(function(){
+  if (localStorage.getItem('dark') === '1') document.documentElement.classList.add('dark');
+  window.__csrf = '<%= typeof _csrf !== 'undefined' ? _csrf : '' %>';
+})();
+</script>
 <% if (typeof user !== 'undefined' && user) { %>
-<nav class="bg-white shadow-sm border-b sticky top-0 z-50">
+<nav class="bg-white dark:bg-gray-900 shadow-sm border-b dark:border-gray-700 sticky top-0 z-50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between h-14 items-center">
-      <a href="/dashboard" class="font-bold text-xl text-indigo-600">Armada QR</a>
-      <div class="flex items-center gap-3 text-sm">
-        <a href="/dashboard" class="text-gray-600 hover:text-indigo-600 hidden sm:inline">Dashboard</a>
-        <a href="/create" class="text-gray-600 hover:text-indigo-600 hidden sm:inline">Create</a>
+      <a href="/dashboard" class="font-bold text-xl text-indigo-600 dark:text-indigo-400">Armada QR</a>
+      <div class="flex items-center gap-2 sm:gap-3 text-sm">
+        <a href="/dashboard" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hidden sm:inline">Dashboard</a>
+        <a href="/create" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hidden sm:inline">Create</a>
         <% if (user.role === 'admin') { %>
-        <a href="/admin" class="text-purple-600 hover:text-purple-800 font-medium">Admin</a>
+        <a href="/admin" class="text-purple-600 dark:text-purple-400 hover:text-purple-800 font-medium">Admin</a>
         <% } %>
-        <span class="text-gray-400 text-xs hidden md:inline"><%= user.email %></span>
+        <button onclick="document.documentElement.classList.toggle('dark');localStorage.setItem('dark',document.documentElement.classList.contains('dark')?'1':'0')" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-lg p-1" title="Toggle theme">🌓</button>
+        <span class="text-gray-400 dark:text-gray-500 text-xs hidden md:inline"><%= user.email %></span>
         <a href="/logout" class="text-red-500 hover:text-red-700 text-xs font-medium">Logout</a>
       </div>
     </div>

@@ -203,6 +203,10 @@ async function handleEdit(req, res) {
 
 router.post('/delete/:id', requireAuth, asyncWrap(async (req, res) => {
   if (!/^[a-f0-9]{12}$/i.test(req.params.id)) return res.redirect('/dashboard');
+  const qr = await q.get('SELECT * FROM qr_codes WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
+  if (qr && qr.file_path) {
+    try { fs.unlinkSync(path.join(uploadDir, qr.file_path)); } catch {}
+  }
   await q.run('DELETE FROM qr_codes WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
   res.redirect('/dashboard');
 }));

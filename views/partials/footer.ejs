@@ -1,3 +1,13 @@
 </main>
+<script>
+document.querySelectorAll('form[method="POST"]').forEach(function(f) {
+  if (!f.querySelector('input[name="_csrf"]')) {
+    var inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = '_csrf';
+    inp.value = window.__csrf || '';
+    f.prepend(inp);
+  }
+});
+</script>
 </body>
 </html>

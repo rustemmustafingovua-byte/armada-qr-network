@@ -11,6 +11,7 @@
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^11.0.0",
     "chart.js": "^4.4.0",
+    "compression": "^1.8.1",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.6.1",
     "ejs": "^3.1.9",
