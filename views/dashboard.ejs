@@ -53,6 +53,7 @@
           <td class="px-3 sm:px-4 py-3 text-right space-x-2 text-xs">
             <a href="/edit/<%= qr.id %>" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium">Edit</a>
             <a href="/analytics/<%= qr.id %>" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium">Stats</a>
+            <span class="msg-badge-<%= qr.id %> text-gray-400"></span>
             <form method="POST" action="/delete/<%= qr.id %>" class="inline" onsubmit="return confirm('Delete this QR code?')">
               <button class="text-red-500 dark:text-red-400 hover:text-red-700 font-medium">Delete</button>
             </form>
@@ -89,5 +90,17 @@ fetch('/api/analytics-summary').then(function(r){return r.json()}).then(function
   document.getElementById('total-scans').textContent = d.totalScans;
   document.getElementById('top-qr').textContent = d.topQr ? d.topQr.title + ' (' + d.topQr.scans + ')' : 'N/A';
 });
+
+<% qrs.forEach(qr => { %>
+(function(id){
+  fetch('/api/messages/' + id + '/unread-count').then(function(r){return r.json()}).then(function(d){
+    var el = document.querySelector('.msg-badge-' + id);
+    if (el && d.count > 0) {
+      el.textContent = '💬' + d.count;
+      el.className = 'msg-badge-' + id + ' text-xs font-bold text-indigo-600 dark:text-indigo-400';
+    }
+  });
+})('<%= qr.id %>');
+<% }) %>
 </script>
 <%- include('partials/footer') %>

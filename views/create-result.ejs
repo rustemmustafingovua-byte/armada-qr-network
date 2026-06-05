@@ -16,6 +16,13 @@
         <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Short ID</p>
         <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded text-sm font-mono dark:text-gray-200"><%= id %></code>
       </div>
+      <% if (typeof verifyCode !== 'undefined' && verifyCode) { %>
+      <div>
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Verification Code</p>
+        <code class="bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 px-3 py-1.5 rounded text-lg font-bold font-mono"><%= verifyCode %></code>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Users need this code to view/download files</p>
+      </div>
+      <% } %>
     </div>
 
     <div class="flex flex-col sm:flex-row gap-3 justify-center">

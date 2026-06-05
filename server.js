@@ -9,13 +9,15 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
-const { initialize, ensureAdmin } = require('./db/schema');
+const { initialize, ensureAdmin, migrateV2 } = require('./db/schema');
 const { getLocalIP, getNgrokUrl } = require('./utils/network');
 const authRoutes = require('./routes/auth');
 const qrRoutes = require('./routes/qr');
 const redirectRoutes = require('./routes/redirect');
 const analyticsRoutes = require('./routes/analytics');
 const adminRoutes = require('./routes/admin');
+const messagesRoutes = require('./routes/messages');
+const filesRoutes = require('./routes/files');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +38,7 @@ if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 // ── Startup ──
 (async () => {
   await initialize();
+  await migrateV2();
   await ensureAdmin();
 })();
 
@@ -56,10 +59,10 @@ app.use(helmet({
       scriptSrc: ["'self'", "https://cdn.tailwindcss.com", "https://cdn.jsdelivr.net", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
       imgSrc: ["'self'", "data:", "blob:"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", "blob:"],
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
+      mediaSrc: ["'self'", "blob:"],
       frameSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"]
@@ -103,9 +106,10 @@ const scanLimiter = rateLimit({
 app.use('/q/', scanLimiter);
 
 const apiLimiter = rateLimit({
-  windowMs: 60 * 1000, max: 60,
+  windowMs: 60 * 1000, max: 120,
   message: { error: 'Too many API requests' },
-  keyGenerator: (req) => req.ip
+  keyGenerator: (req) => req.ip,
+  skip: (req) => req.path.includes('/api/messages/') && req.method === 'GET'
 });
 app.use('/api/', apiLimiter);
 
@@ -118,7 +122,7 @@ app.use('/create', postOnly(uploadLimiter));
 
 // ── Body parsing ──
 app.use(express.urlencoded({ extended: false, limit: '500kb' }));
-app.use(express.json({ limit: '100kb' }));
+app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
 // ── Static files ──
@@ -158,6 +162,8 @@ app.use('/', qrRoutes);
 app.use('/', redirectRoutes);
 app.use('/', analyticsRoutes);
 app.use('/', adminRoutes);
+app.use('/', messagesRoutes);
+app.use('/', filesRoutes);
 
 app.get('/', (req, res) => res.redirect(302, '/dashboard'));
 app.get('/robots.txt', (req, res) => res.type('text/plain').send('User-agent: *\nDisallow: /'));

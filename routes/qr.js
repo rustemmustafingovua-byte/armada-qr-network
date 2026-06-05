@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs');
+const zlib = require('zlib');
 const crypto = require('crypto');
 const multer = require('multer');
 const { q, asyncWrap } = require('../db/query');
@@ -32,56 +33,32 @@ function setCachedQr(key, data) {
   }
 }
 
-const MAGIC_BYTES = {
-  pdf: ['%PDF'], png: ['\x89PNG'], jpg: ['\xff\xd8\xff'], jpeg: ['\xff\xd8\xff'],
-  gif: ['GIF87a', 'GIF89a'], webp: ['RIFF'], zip: ['PK\x03\x04'], rar: ['Rar!\x1a\x07'],
-  txt: [], csv: [], mp3: ['ID3'], mp4: ['ftyp'], doc: ['\xd0\xcf\x11\xe0'], docx: ['PK\x03\x04'],
-};
-
-const ALLOWED_EXTENSIONS = new Set([
-  '.pdf', '.png', '.jpg', '.jpeg', '.gif', '.webp',
-  '.mp3', '.mp4', '.mov', '.avi',
-  '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-  '.txt', '.csv', '.zip', '.rar', '.7z', '.svg', '.json'
-]);
-
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    const safe = ALLOWED_EXTENSIONS.has(ext) ? ext : '.bin';
-    cb(null, `${Date.now()}-${crypto.randomBytes(4).toString('hex')}${safe}`);
+    cb(null, `${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext || '.bin'}`);
   }
 });
 const upload = multer({
-  storage, limits: { fileSize: 50 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (!ALLOWED_EXTENSIONS.has(ext)) return cb(new Error('File type not allowed'), false);
-    cb(null, true);
-  }
+  storage, limits: { fileSize: 200 * 1024 * 1024 },
 });
 
-function validateMagicBytes(filepath, ext) {
-  try {
-    const fd = fs.openSync(filepath, 'r');
-    const buffer = Buffer.alloc(8);
-    fs.readSync(fd, buffer, 0, 8, 0);
-    fs.closeSync(fd);
-    const sigs = MAGIC_BYTES[ext.replace('.', '')] || [];
-    if (sigs.length === 0) return true;
-    return sigs.some(sig => {
-      const slice = buffer.slice(0, sig.length).toString('binary');
-      if (slice === sig) return true;
-      // Check for common prefixes (BOM, whitespace)
-      for (let skip = 0; skip < 4; skip++) {
-        const c = buffer[skip];
-        if (c === 0xEF || c === 0xBB || c === 0xBF || c === 0x20 || c === 0x09 || c === 0x0A || c === 0x0D) continue;
-        return buffer.slice(skip, skip + sig.length).toString('binary') === sig;
-      }
-      return false;
+function compressFile(srcPath) {
+  return new Promise((resolve, reject) => {
+    const tmpPath = srcPath + '.tmp';
+    const gzip = zlib.createGzip({ level: 6 });
+    const inp = fs.createReadStream(srcPath);
+    const out = fs.createWriteStream(tmpPath);
+    inp.pipe(gzip).pipe(out);
+    out.on('finish', () => {
+      fs.unlinkSync(srcPath);
+      fs.renameSync(tmpPath, srcPath);
+      resolve();
     });
-  } catch { return false; }
+    out.on('error', reject);
+    gzip.on('error', reject);
+  });
 }
 
 router.get('/dashboard', requireAuth, asyncWrap(async (req, res) => {
@@ -109,6 +86,7 @@ async function handleCreate(req, res) {
     const vcard_data = req.body.vcard_data || '';
     const text_data = req.body.text_data || '';
     const password = req.body.password || '';
+    const verifyCode = req.body.verify_code || '';
     const expires_at = req.body.expires_at || null;
     const scan_limit = req.body.scan_limit ? Math.min(parseInt(req.body.scan_limit) || 0, 999999) : null;
     const fg_color = validateHexColor(req.body.fg_color) ? req.body.fg_color : '#000000';
@@ -127,22 +105,32 @@ async function handleCreate(req, res) {
       password_hash = await bcrypt.hash(password, 10);
     }
 
+    let verify_code_hash = null;
+    if (verifyCode) {
+      if (verifyCode.length < 3) return res.render('create', { user: req.user, error: 'Verification code too short (min 3 characters)' });
+      verify_code_hash = await bcrypt.hash(verifyCode, 10);
+    }
+
     let filePath = '';
     let fileName = '';
+    let fileSize = 0;
     if (req.file) {
       filePath = req.file.filename;
       fileName = Buffer.from(req.file.originalname, 'latin1').toString('utf8').replace(/[<>:"/\\|?*]/g, '_');
-      const ext = path.extname(fileName).toLowerCase();
-      if (!validateMagicBytes(path.join(uploadDir, filePath), ext)) {
-        fs.unlinkSync(path.join(uploadDir, filePath));
-        return res.render('create', { user: req.user, error: 'File content does not match extension' });
-      }
+      const rawPath = path.join(uploadDir, filePath);
+      fileSize = fs.statSync(rawPath).size;
+      await compressFile(rawPath);
+      const compressedSize = fs.statSync(rawPath).size;
+      await q.run(
+        'INSERT INTO file_uploads (qr_id, file_path, original_name, mime_type, original_size, compressed_size) VALUES (?, ?, ?, ?, ?, ?)',
+        [id, filePath, fileName, req.file.mimetype || 'application/octet-stream', fileSize, compressedSize]
+      );
     }
 
     await q.run(
-      `INSERT INTO qr_codes (id, user_id, title, type, content_type, target_url, file_path, file_name, vcard_data, text_data, password_hash, expires_at, scan_limit, fg_color, bg_color, dot_style)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, req.user.id, title, type, content_type, target_url, filePath, fileName, vcard_data, text_data, password_hash, expires_at, scan_limit, fg_color, bg_color, dot_style]
+      `INSERT INTO qr_codes (id, user_id, title, type, content_type, target_url, file_path, file_name, vcard_data, text_data, password_hash, verify_code_hash, expires_at, scan_limit, fg_color, bg_color, dot_style, file_size)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, req.user.id, title, type, content_type, target_url, filePath, fileName, vcard_data, text_data, password_hash, verify_code_hash, expires_at, scan_limit, fg_color, bg_color, dot_style, fileSize]
     );
 
     const baseUrl = getPublicUrl(req);
@@ -154,8 +142,9 @@ async function handleCreate(req, res) {
       errorCorrectionLevel: 'M'
     });
 
-    res.render('create-result', { id, qrImage, qrUrl, baseUrl, title, user: req.user });
+    res.render('create-result', { id, qrImage, qrUrl, baseUrl, title, verifyCode, user: req.user });
   } catch (err) {
+    console.error('Create error:', err);
     res.render('create', { user: req.user, error: 'Failed to create QR code: ' + err.message });
   }
 }
@@ -185,6 +174,7 @@ async function handleEdit(req, res) {
     const vcard_data = req.body.vcard_data || '';
     const text_data = req.body.text_data || '';
     const password = req.body.password || '';
+    const verifyCode = req.body.verify_code || '';
     const expires_at = req.body.expires_at || null;
     const scan_limit = req.body.scan_limit ? Math.min(parseInt(req.body.scan_limit) || 0, 999999) : null;
     const is_active = req.body.is_active !== undefined ? 1 : 0;
@@ -198,21 +188,37 @@ async function handleEdit(req, res) {
       password_hash = await bcrypt.hash(password, 10);
     }
 
+    let verify_code_hash = qr.verify_code_hash;
+    if (verifyCode) {
+      if (verifyCode.length < 3) return res.render('edit', { qr, user: req.user, error: 'Verification code too short' });
+      verify_code_hash = await bcrypt.hash(verifyCode, 10);
+    }
+
     let filePath = qr.file_path;
     let fileName = qr.file_name;
+    let fileSize = qr.file_size || 0;
     if (req.file) {
       filePath = req.file.filename;
       fileName = Buffer.from(req.file.originalname, 'latin1').toString('utf8').replace(/[<>:"/\\|?*]/g, '_');
+      const rawPath = path.join(uploadDir, filePath);
+      fileSize = fs.statSync(rawPath).size;
+      await compressFile(rawPath);
+      const compressedSize = fs.statSync(rawPath).size;
+      await q.run(
+        'INSERT INTO file_uploads (qr_id, file_path, original_name, mime_type, original_size, compressed_size) VALUES (?, ?, ?, ?, ?, ?)',
+        [req.params.id, filePath, fileName, req.file.mimetype || 'application/octet-stream', fileSize, compressedSize]
+      );
     }
 
     await q.run(
-      `UPDATE qr_codes SET title=?, target_url=?, file_path=?, file_name=?, vcard_data=?, text_data=?, password_hash=?, expires_at=?, scan_limit=?, is_active=?, fg_color=?, bg_color=?, dot_style=?, updated_at=CURRENT_TIMESTAMP
+      `UPDATE qr_codes SET title=?, target_url=?, file_path=?, file_name=?, vcard_data=?, text_data=?, password_hash=?, verify_code_hash=?, expires_at=?, scan_limit=?, is_active=?, fg_color=?, bg_color=?, dot_style=?, file_size=?, updated_at=CURRENT_TIMESTAMP
        WHERE id=? AND user_id=?`,
-      [title, target_url, filePath, fileName, vcard_data, text_data, password_hash, expires_at, scan_limit, is_active, fg_color, bg_color, dot_style, req.params.id, req.user.id]
+      [title, target_url, filePath, fileName, vcard_data, text_data, password_hash, verify_code_hash, expires_at, scan_limit, is_active, fg_color, bg_color, dot_style, fileSize, req.params.id, req.user.id]
     );
 
     res.redirect('/dashboard');
   } catch (err) {
+    console.error('Edit error:', err);
     const qr = await q.get('SELECT * FROM qr_codes WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
     res.render('edit', { qr, user: req.user, error: 'Update failed' });
   }
@@ -221,6 +227,10 @@ async function handleEdit(req, res) {
 router.post('/delete/:id', requireAuth, asyncWrap(async (req, res) => {
   if (!/^[a-f0-9]{12}$/i.test(req.params.id)) return res.redirect('/dashboard');
   qrCache.delete(req.params.id);
+  const files = await q.all('SELECT file_path FROM file_uploads WHERE qr_id = ?', [req.params.id]);
+  for (const f of files) {
+    try { fs.unlinkSync(path.join(uploadDir, f.file_path)); } catch {}
+  }
   const qr = await q.get('SELECT * FROM qr_codes WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
   if (qr && qr.file_path) {
     try { fs.unlinkSync(path.join(uploadDir, qr.file_path)); } catch {}

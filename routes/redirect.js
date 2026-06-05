@@ -92,6 +92,15 @@ router.post('/q/:id', asyncWrap(async (req, res) => {
   res.redirect(`/q/${qr.id}`);
 }));
 
+async function getFiles(qrId) {
+  return q.all('SELECT id, original_name, original_size, mime_type, created_at FROM file_uploads WHERE qr_id = ? ORDER BY created_at ASC', [qrId]);
+}
+
+async function getFileCount(qrId) {
+  const row = await q.get('SELECT COUNT(*) as count FROM file_uploads WHERE qr_id = ?', [qrId]);
+  return parseInt(row?.count || 0);
+}
+
 function handleContent(req, res, qr) {
   switch (qr.content_type) {
     case 'link': {
@@ -100,7 +109,7 @@ function handleContent(req, res, qr) {
       return res.redirect(302, '/');
     }
     case 'file':
-      return res.render('public-file', { fileName: qr.file_name || 'download', fileId: qr.id, title: qr.title || '' });
+      return handleFileContent(req, res, qr);
     case 'vcard':
       res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="${(qr.title || 'contact').replace(/[^a-zA-Z0-9_-]/g, '_')}.vcf"`);
@@ -112,53 +121,42 @@ function handleContent(req, res, qr) {
   }
 }
 
-const mimeTypes = {
-  '.pdf': 'application/pdf',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp',
-  '.mp3': 'audio/mpeg', '.mp4': 'video/mp4', '.mov': 'video/quicktime',
-  '.doc': 'application/msword', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  '.xls': 'application/vnd.ms-excel', '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  '.zip': 'application/zip', '.rar': 'application/vnd.rar', '.7z': 'application/x-7z-compressed',
-  '.txt': 'text/plain', '.csv': 'text/csv',
-  '.svg': 'image/svg+xml', '.json': 'application/json'
-};
+async function handleFileContent(req, res, qr) {
+  const files = await getFiles(qr.id);
+  const hasVerifyCode = !!qr.verify_code_hash;
+  res.render('public-file', {
+    title: qr.title || 'File Download',
+    qrId: qr.id,
+    files,
+    hasVerifyCode,
+    verified: !!req.query.verified
+  });
+}
 
 router.get('/download/:id', asyncWrap(async (req, res) => {
   const id = (req.params.id || '').replace(/[^a-fA-F0-9]/g, '').substring(0, 12);
   if (!id || id.length < 6) return res.status(404).render('public-error', { message: 'File not found', code: 404 });
-  const qr = await q.get('SELECT * FROM qr_codes WHERE id = ?', [id]);
-  if (!qr || qr.content_type !== 'file' || !qr.file_path) return res.status(404).render('public-error', { message: 'File not found', code: 404 });
-  const safePath = sanitizeForPath(qr.file_path);
-  const filePath = path.join(uploadDir, safePath);
-  if (!isSafePath(filePath) || !fs.existsSync(filePath)) return res.status(404).render('public-error', { message: 'File not found', code: 404 });
-  const ext = path.extname(qr.file_name || '').toLowerCase();
-  const contentType = mimeTypes[ext] || 'application/octet-stream';
-  const fileName = qr.file_name || 'download';
-  const encodedName = encodeURIComponent(fileName);
-  const stat = fs.statSync(filePath);
-  res.setHeader('Content-Type', contentType);
-  res.setHeader('Content-Disposition', `attachment; filename="${fileName.replace(/[<>:"/\\|?*]/g, '_')}"; filename*=UTF-8''${encodedName}`);
-  res.setHeader('Content-Length', stat.size);
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  const stream = fs.createReadStream(filePath);
-  stream.pipe(res);
-  stream.on('error', () => { if (!res.headersSent) res.status(500).render('public-error', { message: 'Download failed', code: 500 }); });
-}));
 
-router.get('/preview/:id', asyncWrap(async (req, res) => {
-  const id = (req.params.id || '').replace(/[^a-fA-F0-9]/g, '').substring(0, 12);
-  if (!id || id.length < 6) return res.status(404).render('public-error', { message: 'File not found', code: 404 });
-  const qr = await q.get('SELECT * FROM qr_codes WHERE id = ?', [id]);
-  if (!qr || qr.content_type !== 'file' || !qr.file_path) return res.status(404).render('public-error', { message: 'File not found', code: 404 });
-  const safePath = sanitizeForPath(qr.file_path);
-  const filePath = path.join(uploadDir, safePath);
-  if (!isSafePath(filePath) || !fs.existsSync(filePath)) return res.status(404).render('public-error', { message: 'File not found', code: 404 });
-  const ext = path.extname(qr.file_name || '').toLowerCase();
-  const imageExts = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']);
-  if (imageExts.has(ext)) { res.setHeader('Cache-Control', 'public, max-age=3600'); return res.sendFile(filePath); }
-  if (ext === '.pdf') { res.setHeader('Content-Type', 'application/pdf'); res.setHeader('X-Content-Type-Options', 'nosniff'); return res.sendFile(filePath); }
-  res.redirect(`/download/${qr.id}`);
+  const files = await q.all('SELECT id FROM file_uploads WHERE qr_id = ? ORDER BY created_at ASC LIMIT 1', [id]);
+  if (files.length === 0) {
+    const qr = await q.get('SELECT * FROM qr_codes WHERE id = ?', [id]);
+    if (!qr || qr.content_type !== 'file' || !qr.file_path) return res.status(404).render('public-error', { message: 'File not found', code: 404 });
+    const safePath = sanitizeForPath(qr.file_path);
+    const filePath = path.join(uploadDir, safePath);
+    if (!isSafePath(filePath) || !fs.existsSync(filePath)) return res.status(404).render('public-error', { message: 'File not found', code: 404 });
+    const ext = path.extname(qr.file_name || '').toLowerCase();
+    const fileName = qr.file_name || 'download';
+    const stat = fs.statSync(filePath);
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName.replace(/[<>:"/\\|?*]/g, '_')}"`);
+    res.setHeader('Content-Length', stat.size);
+    res.setHeader('Cache-Control', 'no-cache');
+    const stream = fs.createReadStream(filePath);
+    stream.pipe(res);
+    return;
+  }
+
+  res.redirect(`/download/${files[0].id}`);
 }));
 
 module.exports = router;
