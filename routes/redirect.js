@@ -68,6 +68,14 @@ router.get('/q/:id', optionalAuth, asyncWrap(async (req, res) => {
   if (!qr.is_active) return res.render('public-expired', { reason: 'This QR code has been deactivated.' });
   if (qr.expires_at && new Date(qr.expires_at) < new Date()) return res.render('public-expired', { reason: 'This QR code has expired.' });
   if (qr.scan_limit && qr.scan_count >= qr.scan_limit) return res.render('public-expired', { reason: 'This QR code has reached its scan limit.' });
+
+  const isOwner = req.user && String(req.user.id) === String(qr.user_id);
+
+  if (isOwner) {
+    await logScan(qr.id, req.ip, req.get('User-Agent'), req.get('Referer'));
+    return handleContent(req, res, qr);
+  }
+
   if (qr.password_hash) {
     if (req.query.pwd) {
       const match = await bcrypt.compare(req.query.pwd, qr.password_hash);
@@ -124,12 +132,14 @@ function handleContent(req, res, qr) {
 async function handleFileContent(req, res, qr) {
   const files = await getFiles(qr.id);
   const hasVerifyCode = !!qr.verify_code_hash;
+  const isOwner = req.user && String(req.user.id) === String(qr.user_id);
   res.render('public-file', {
     title: qr.title || 'File Download',
     qrId: qr.id,
     files,
     hasVerifyCode,
-    verified: !!req.query.verified
+    verified: !!req.query.verified || isOwner,
+    qr
   });
 }
 

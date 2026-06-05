@@ -12,10 +12,6 @@
         <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">QR URL (scan to open)</p>
         <a href="<%= qrUrl %>" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline break-all text-sm"><%= qrUrl %></a>
       </div>
-      <div>
-        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Short ID</p>
-        <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded text-sm font-mono dark:text-gray-200"><%= id %></code>
-      </div>
       <% if (typeof verifyCode !== 'undefined' && verifyCode) { %>
       <div>
         <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Verification Code</p>
@@ -23,7 +19,35 @@
         <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Users need this code to view/download files</p>
       </div>
       <% } %>
+      <% if (typeof password !== 'undefined' && password) { %>
+      <div>
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Password</p>
+        <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded font-mono text-sm dark:text-gray-200"><%= password %></code>
+      </div>
+      <% } %>
+      <div>
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Short ID</p>
+        <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded text-sm font-mono dark:text-gray-200"><%= id %></code>
+      </div>
     </div>
+
+    <% if (typeof uploadedFiles !== 'undefined' && uploadedFiles.length > 0) { %>
+    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-6 text-left">
+      <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Uploaded Files</p>
+      <% uploadedFiles.forEach(function(f) { %>
+      <div class="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg px-3 py-2 mb-2 border dark:border-gray-700">
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium dark:text-white truncate"><%= f.original_name %></p>
+          <p class="text-xs text-gray-400"><%= f.original_size > 1048576 ? (f.original_size / 1048576).toFixed(1) + ' MB' : f.original_size > 1024 ? (f.original_size / 1024).toFixed(1) + ' KB' : f.original_size + ' B' %></p>
+        </div>
+        <a href="/d/<%= f.id %><%= typeof verifyCode !== 'undefined' && verifyCode ? '?code=' + encodeURIComponent(verifyCode) : '' %>"
+           class="btn-scale bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-xs font-medium whitespace-nowrap ml-3">
+          Download
+        </a>
+      </div>
+      <% }) %>
+    </div>
+    <% } %>
 
     <div class="flex flex-col sm:flex-row gap-3 justify-center">
       <a href="/dashboard" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg hover:bg-indigo-700 font-medium text-sm btn-scale">Back to Dashboard</a>

@@ -7,7 +7,7 @@ const fs = require('fs');
 const zlib = require('zlib');
 const crypto = require('crypto');
 const multer = require('multer');
-const { q, asyncWrap } = require('../db/query');
+const { q, asyncWrap, db } = require('../db/query');
 const { requireAuth } = require('../middleware/auth');
 const { getPublicUrl } = require('../utils/network');
 const { sanitize, validateUrl, validateHexColor } = require('../middleware/security');
@@ -138,14 +138,17 @@ async function handleCreate(req, res) {
       [id, req.user.id, title, type, content_type, target_url, filePath, fileName, vcard_data, text_data, password_hash, verify_code_hash, expires_at, scan_limit, fg_color, bg_color, dot_style, fileSize]
     );
 
+    let uploadedFiles = [];
     if (req.file) {
       const rawPath = path.join(uploadDir, filePath);
       await compressFile(rawPath);
       const compressedSize = fs.statSync(rawPath).size;
-      await q.run(
+      const insertResult = await q.run(
         'INSERT INTO file_uploads (qr_id, file_path, original_name, mime_type, original_size, compressed_size) VALUES (?, ?, ?, ?, ?, ?)',
         [id, filePath, fileName, req.file.mimetype || 'application/octet-stream', fileSize, compressedSize]
       );
+      const fileId = db.type === 'postgres' ? (insertResult?.rows?.[0]?.id || 0) : (insertResult?.lastInsertRowid || 0);
+      uploadedFiles.push({ id: fileId, original_name: fileName, original_size: fileSize });
     }
 
     const baseUrl = getPublicUrl(req);
@@ -157,7 +160,7 @@ async function handleCreate(req, res) {
       errorCorrectionLevel: 'M'
     });
 
-    res.render('create-result', { id, qrImage, qrUrl, baseUrl, title, verifyCode, user: req.user });
+    res.render('create-result', { id, qrImage, qrUrl, baseUrl, title, verifyCode, password, uploadedFiles, user: req.user });
   } catch (err) {
     console.error('Create error:', err);
     res.render('create', { user: req.user, error: 'Failed to create QR code: ' + err.message });
