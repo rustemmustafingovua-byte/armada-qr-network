@@ -7,6 +7,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 
+ARG BUILD_DATE=unknown
+ENV BUILD_DATE=$BUILD_DATE
+
 COPY . .
 
 RUN mkdir -p /app/public/uploads /app/db && \
