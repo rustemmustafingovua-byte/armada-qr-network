@@ -101,7 +101,9 @@ async function initialize() {
       );
       CREATE INDEX IF NOT EXISTS idx_analytics_qr_id ON analytics(qr_id);
       CREATE INDEX IF NOT EXISTS idx_analytics_scanned_at ON analytics(scanned_at);
+      CREATE INDEX IF NOT EXISTS idx_analytics_qr_scanned ON analytics(qr_id, scanned_at);
       CREATE INDEX IF NOT EXISTS idx_qr_codes_user_id ON qr_codes(user_id);
+      CREATE INDEX IF NOT EXISTS idx_qr_codes_user_created ON qr_codes(user_id, created_at DESC);
     `);
   } else {
     db.exec(`
@@ -153,7 +155,9 @@ async function initialize() {
       );
       CREATE INDEX IF NOT EXISTS idx_analytics_qr_id ON analytics(qr_id);
       CREATE INDEX IF NOT EXISTS idx_analytics_scanned_at ON analytics(scanned_at);
+      CREATE INDEX IF NOT EXISTS idx_analytics_qr_scanned ON analytics(qr_id, scanned_at);
       CREATE INDEX IF NOT EXISTS idx_qr_codes_user_id ON qr_codes(user_id);
+      CREATE INDEX IF NOT EXISTS idx_qr_codes_user_created ON qr_codes(user_id, created_at DESC);
     `);
   }
 }

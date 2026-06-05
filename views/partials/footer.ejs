@@ -1,13 +1,23 @@
 </main>
 <script>
-document.querySelectorAll('form[method="POST"]').forEach(function(f) {
-  if (!f.querySelector('input[name="_csrf"]')) {
-    var inp = document.createElement('input');
-    inp.type = 'hidden'; inp.name = '_csrf';
-    inp.value = window.__csrf || '';
-    f.prepend(inp);
+(function(){
+  var csrf = window.__csrf || '';
+  document.querySelectorAll('form[method="POST"]').forEach(function(f) {
+    if (!f.querySelector('input[name="_csrf"]')) {
+      var inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = '_csrf';
+      inp.value = csrf;
+      f.prepend(inp);
+    }
+  });
+  // Lazy-load Chart.js if canvas found (saves ~100KB on dashboard pages)
+  if (document.querySelector('canvas')) {
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+    s.defer = true;
+    document.head.appendChild(s);
   }
-});
+})();
 </script>
 </body>
 </html>

@@ -15,6 +15,23 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const router = express.Router();
 const uploadDir = path.resolve(__dirname, '..', process.env.UPLOAD_DIR || './public/uploads');
 
+// QR image memory cache (TTL 5 min)
+const qrCache = new Map();
+const CACHE_TTL = 300000;
+function getCachedQr(key) {
+  const entry = qrCache.get(key);
+  if (entry && Date.now() - entry.ts < CACHE_TTL) return entry.data;
+  qrCache.delete(key);
+  return null;
+}
+function setCachedQr(key, data) {
+  qrCache.set(key, { data, ts: Date.now() });
+  if (qrCache.size > 500) {
+    const oldest = [...qrCache.entries()].sort((a, b) => a[1].ts - b[1].ts)[0];
+    if (oldest) qrCache.delete(oldest[0]);
+  }
+}
+
 const MAGIC_BYTES = {
   pdf: ['%PDF'], png: ['\x89PNG'], jpg: ['\xff\xd8\xff'], jpeg: ['\xff\xd8\xff'],
   gif: ['GIF87a', 'GIF89a'], webp: ['RIFF'], zip: ['PK\x03\x04'], rar: ['Rar!\x1a\x07'],
@@ -203,6 +220,7 @@ async function handleEdit(req, res) {
 
 router.post('/delete/:id', requireAuth, asyncWrap(async (req, res) => {
   if (!/^[a-f0-9]{12}$/i.test(req.params.id)) return res.redirect('/dashboard');
+  qrCache.delete(req.params.id);
   const qr = await q.get('SELECT * FROM qr_codes WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
   if (qr && qr.file_path) {
     try { fs.unlinkSync(path.join(uploadDir, qr.file_path)); } catch {}
@@ -229,6 +247,8 @@ router.get('/qr-image/:id', requireAuth, asyncWrap(async (req, res) => {
 router.post('/generate-qr', requireAuth, asyncWrap(async (req, res) => {
   const qrId = req.body.qrId || '';
   if (!/^[a-f0-9]{12}$/i.test(qrId)) return res.status(400).json({ error: 'Invalid ID' });
+  let cached = getCachedQr(qrId);
+  if (cached) return res.json({ image: cached.image, url: cached.url });
   const qr = await q.get('SELECT * FROM qr_codes WHERE id = ? AND user_id = ?', [qrId, req.user.id]);
   if (!qr) return res.status(404).json({ error: 'Not found' });
   const baseUrl = getPublicUrl(req);
@@ -239,6 +259,7 @@ router.post('/generate-qr', requireAuth, asyncWrap(async (req, res) => {
     color: { dark: qr.fg_color, light: qr.bg_color },
     margin: 2, width: 400, errorCorrectionLevel: 'M'
   });
+  setCachedQr(qrId, { image: qrImage, url: qrUrl });
   res.json({ image: qrImage, url: qrUrl });
 }));
 

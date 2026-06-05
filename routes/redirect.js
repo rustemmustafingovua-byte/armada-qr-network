@@ -46,11 +46,11 @@ async function logScan(qrId, ip, ua, referer) {
   try {
     const info = parseUserAgent(ua);
     const geo = getCountry(ip);
-    await q.run(
-      'INSERT INTO analytics (qr_id, ip_address, user_agent, country, city, device_type, os, browser, referer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [qrId, ip || '', (ua || '').substring(0, 500), geo.country, geo.city, info.device_type, info.os, info.browser, (referer || '').substring(0, 500)]
-    );
-    await q.run('UPDATE qr_codes SET scan_count = scan_count + 1 WHERE id = ?', [qrId]);
+    await Promise.all([
+      q.run('INSERT INTO analytics (qr_id, ip_address, user_agent, country, city, device_type, os, browser, referer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [qrId, ip || '', (ua || '').substring(0, 500), geo.country, geo.city, info.device_type, info.os, info.browser, (referer || '').substring(0, 500)]),
+      q.run('UPDATE qr_codes SET scan_count = scan_count + 1 WHERE id = ?', [qrId])
+    ]);
   } catch (e) {
     console.error('Analytics error:', e.message);
   }
