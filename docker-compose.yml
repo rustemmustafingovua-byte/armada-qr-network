@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - PORT=3000
+      - UPLOAD_DIR=./public/uploads
+      - MAX_SCAN_RATE=10
+      - PUBLIC_URL=${PUBLIC_URL:-}
+      - DATABASE_URL=${DATABASE_URL:-}
+    volumes:
+      - uploads:/app/public/uploads
+      - dbdata:/app/db
+    restart: unless-stopped
+
+volumes:
+  uploads:
+  dbdata:

@@ -1,0 +1,73 @@
+<%- include('partials/header') %>
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">My QR Codes</h1>
+    <p class="text-gray-500 text-sm">Manage, edit, and track your QR codes</p>
+  </div>
+  <a href="/create" class="btn-scale bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 font-medium text-sm whitespace-nowrap">+ Create QR</a>
+</div>
+
+<div id="summary-cards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+  <div class="bg-white p-3 sm:p-4 rounded-lg shadow-sm border"><p class="text-gray-500 text-xs uppercase">Total</p><p class="text-xl sm:text-2xl font-bold" id="total-qrs">-</p></div>
+  <div class="bg-white p-3 sm:p-4 rounded-lg shadow-sm border"><p class="text-gray-500 text-xs uppercase">Active</p><p class="text-xl sm:text-2xl font-bold text-green-600" id="active-qrs">-</p></div>
+  <div class="bg-white p-3 sm:p-4 rounded-lg shadow-sm border"><p class="text-gray-500 text-xs uppercase">Scans</p><p class="text-xl sm:text-2xl font-bold text-indigo-600" id="total-scans">-</p></div>
+  <div class="bg-white p-3 sm:p-4 rounded-lg shadow-sm border"><p class="text-gray-500 text-xs uppercase">Top QR</p><p class="text-base sm:text-lg font-bold truncate" id="top-qr">-</p></div>
+</div>
+
+<% if (qrs.length === 0) { %>
+<div class="bg-white rounded-xl shadow-sm border p-12 text-center">
+  <div class="text-5xl mb-4">📱</div>
+  <p class="text-gray-400 text-lg mb-4">No QR codes yet</p>
+  <a href="/create" class="btn-scale bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 font-medium inline-block">Create your first QR code</a>
+</div>
+<% } else { %>
+<div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+        <tr>
+          <th class="text-left px-3 sm:px-4 py-3">Title</th>
+          <th class="text-left px-3 sm:px-4 py-3 hidden sm:table-cell">Type</th>
+          <th class="text-left px-3 sm:px-4 py-3 hidden md:table-cell">Content</th>
+          <th class="text-center px-3 sm:px-4 py-3">Scans</th>
+          <th class="text-center px-3 sm:px-4 py-3 hidden sm:table-cell">Status</th>
+          <th class="text-right px-3 sm:px-4 py-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        <% qrs.forEach(qr => { %>
+        <tr class="hover:bg-gray-50">
+          <td class="px-3 sm:px-4 py-3 font-medium"><%= qr.title || 'Untitled' %></td>
+          <td class="px-3 sm:px-4 py-3 hidden sm:table-cell"><span class="px-2 py-0.5 rounded text-xs <%= qr.type === 'dynamic' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600' %>"><%= qr.type %></span></td>
+          <td class="px-3 sm:px-4 py-3 text-gray-500 truncate max-w-[120px] sm:max-w-[200px] hidden md:table-cell"><%= qr.content_type %>: <%= qr.target_url || qr.file_name || (qr.text_data ? qr.text_data.substring(0, 30) : '-') %></td>
+          <td class="px-3 sm:px-4 py-3 text-center font-mono"><%= qr.scan_count %></td>
+          <td class="px-3 sm:px-4 py-3 text-center hidden sm:table-cell">
+            <% if (!qr.is_active) { %><span class="text-red-500 text-xs">Inactive</span>
+            <% } else if (qr.expires_at && new Date(qr.expires_at) < new Date()) { %><span class="text-orange-500 text-xs">Expired</span>
+            <% } else if (qr.scan_limit && qr.scan_count >= qr.scan_limit) { %><span class="text-orange-500 text-xs">Limit</span>
+            <% } else { %><span class="text-green-500 text-xs">Active</span><% } %>
+          </td>
+          <td class="px-3 sm:px-4 py-3 text-right space-x-2 text-xs">
+            <a href="/edit/<%= qr.id %>" class="text-indigo-600 hover:text-indigo-800 font-medium">Edit</a>
+            <a href="/analytics/<%= qr.id %>" class="text-indigo-600 hover:text-indigo-800 font-medium">Stats</a>
+            <form method="POST" action="/delete/<%= qr.id %>" class="inline" onsubmit="return confirm('Delete this QR code?')">
+              <button class="text-red-500 hover:text-red-700 font-medium">Delete</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<% } %>
+
+<script>
+fetch('/api/analytics-summary').then(function(r){return r.json()}).then(function(d){
+  document.getElementById('total-qrs').textContent = d.totalQrs;
+  document.getElementById('active-qrs').textContent = d.activeQrs;
+  document.getElementById('total-scans').textContent = d.totalScans;
+  document.getElementById('top-qr').textContent = d.topQr ? d.topQr.title + ' (' + d.topQr.scans + ')' : 'N/A';
+});
+</script>
+<%- include('partials/footer') %>

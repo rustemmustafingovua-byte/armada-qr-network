@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR-Master <%= typeof title !== 'undefined' ? '- ' + title : '' %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <% if (typeof user !== 'undefined' && user) { %>
+  <nav class="bg-white shadow-sm border-b">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-14 items-center">
+        <a href="/dashboard" class="font-bold text-xl text-indigo-600">QR-Master</a>
+        <div class="flex items-center gap-4 text-sm">
+          <a href="/dashboard" class="text-gray-600 hover:text-indigo-600">Dashboard</a>
+          <a href="/create" class="text-gray-600 hover:text-indigo-600">Create QR</a>
+          <span class="text-gray-400"><%= user.email %></span>
+          <a href="/logout" class="text-red-500 hover:text-red-700">Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <% } %>
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <%- body %>
+  </main>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<%- include('partials/header') %>
+<%
+  var scansByDayData = JSON.parse(typeof scansByDay !== 'undefined' ? scansByDay : '[]');
+  var osStatsData = JSON.parse(typeof osStats !== 'undefined' ? osStats : '[]');
+  var deviceStatsData = JSON.parse(typeof deviceStats !== 'undefined' ? deviceStats : '[]');
+  var browserStatsData = JSON.parse(typeof browserStats !== 'undefined' ? browserStats : '[]');
+  var countryStatsData = JSON.parse(typeof countryStats !== 'undefined' ? countryStats : '[]');
+%>
+<div class="mb-6">
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold">Analytics: <%= qr.title || 'Untitled' %></h1>
+      <p class="text-gray-500 text-sm">QR ID: <code class="bg-gray-100 px-1 rounded"><%= qr.id %></code></p>
+    </div>
+    <div class="text-right">
+      <p class="text-3xl font-bold text-indigo-600"><%= totalScans %></p>
+      <p class="text-gray-500 text-xs uppercase">Total Scans</p>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+  <div class="bg-white p-4 rounded-xl shadow-sm border">
+    <h3 class="font-semibold text-sm text-gray-600 mb-3">Scans (Last 30 Days)</h3>
+    <canvas id="scansChart" height="200"></canvas>
+  </div>
+  <div class="bg-white p-4 rounded-xl shadow-sm border">
+    <h3 class="font-semibold text-sm text-gray-600 mb-3">Operating Systems</h3>
+    <canvas id="osChart" height="200"></canvas>
+  </div>
+  <div class="bg-white p-4 rounded-xl shadow-sm border">
+    <h3 class="font-semibold text-sm text-gray-600 mb-3">Devices</h3>
+    <canvas id="deviceChart" height="200"></canvas>
+  </div>
+  <div class="bg-white p-4 rounded-xl shadow-sm border">
+    <h3 class="font-semibold text-sm text-gray-600 mb-3">Browsers</h3>
+    <canvas id="browserChart" height="200"></canvas>
+  </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border overflow-hidden mb-6">
+  <div class="px-4 py-3 border-b bg-gray-50">
+    <h3 class="font-semibold text-sm text-gray-600">Countries</h3>
+  </div>
+  <table class="w-full text-sm">
+    <thead class="text-xs text-gray-500 uppercase"><tr><th class="text-left px-4 py-2">Country</th><th class="text-right px-4 py-2">Scans</th></tr></thead>
+    <tbody class="divide-y">
+      <% if (countryStatsData.length === 0) { %><tr><td class="px-4 py-3 text-gray-400 text-center" colspan="2">No data yet</td></tr><% } %>
+      <% countryStatsData.forEach(function(c) { %><tr><td class="px-4 py-2"><%= c.country %></td><td class="px-4 py-2 text-right font-mono"><%= c.count %></td></tr><% }) %>
+    </tbody>
+  </table>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+  <div class="px-4 py-3 border-b bg-gray-50 flex justify-between items-center">
+    <h3 class="font-semibold text-sm text-gray-600">Recent Scans</h3>
+    <span class="text-xs text-gray-400">Last 50</span>
+  </div>
+  <table class="w-full text-sm">
+    <thead class="text-xs text-gray-500 uppercase">
+      <tr><th class="text-left px-4 py-2">Time</th><th class="text-left px-4 py-2">Device</th><th class="text-left px-4 py-2">OS</th><th class="text-left px-4 py-2">Browser</th><th class="text-left px-4 py-2">Country</th><th class="text-left px-4 py-2">IP</th></tr>
+    </thead>
+    <tbody class="divide-y">
+      <% if (recentScans.length === 0) { %><tr><td class="px-4 py-3 text-gray-400 text-center" colspan="6">No scans yet</td></tr><% } %>
+      <% recentScans.forEach(function(s) { %><tr class="hover:bg-gray-50"><td class="px-4 py-2 text-xs"><%= s.scanned_at %></td><td class="px-4 py-2"><%= s.device_type %></td><td class="px-4 py-2"><%= s.os %></td><td class="px-4 py-2"><%= s.browser %></td><td class="px-4 py-2"><%= s.country %></td><td class="px-4 py-2 text-xs text-gray-400"><%= s.ip_address %></td></tr><% }) %>
+    </tbody>
+  </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+var scansData = JSON.parse('<%- scansByDay %>');
+new Chart(document.getElementById('scansChart'), {
+  type: 'line',
+  data: {
+    labels: scansData.map(function(d) { return d.date; }),
+    datasets: [{ label: 'Scans', data: scansData.map(function(d) { return d.count; }), borderColor: '#4f46e5', fill: true, backgroundColor: 'rgba(79,70,229,0.1)', tension: 0.3 }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+
+var osData = JSON.parse('<%- osStats %>');
+new Chart(document.getElementById('osChart'), {
+  type: 'pie',
+  data: {
+    labels: osData.map(function(d) { return d.os; }),
+    datasets: [{ data: osData.map(function(d) { return d.count; }), backgroundColor: ['#4f46e5','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6'] }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+});
+
+var deviceData = JSON.parse('<%- deviceStats %>');
+new Chart(document.getElementById('deviceChart'), {
+  type: 'doughnut',
+  data: {
+    labels: deviceData.map(function(d) { return d.device_type; }),
+    datasets: [{ data: deviceData.map(function(d) { return d.count; }), backgroundColor: ['#4f46e5','#06b6d4','#10b981'] }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+});
+
+var browserData = JSON.parse('<%- browserStats %>');
+new Chart(document.getElementById('browserChart'), {
+  type: 'bar',
+  data: {
+    labels: browserData.map(function(d) { return d.browser; }),
+    datasets: [{ label: 'Scans', data: browserData.map(function(d) { return d.count; }), backgroundColor: '#4f46e5' }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+</script>
+<%- include('partials/footer') %>

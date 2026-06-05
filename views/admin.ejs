@@ -1,0 +1,122 @@
+<%- include('partials/header') %>
+<h1 class="text-2xl font-bold mb-6">Admin Panel</h1>
+
+<!-- Server connection info -->
+<div class="bg-white p-4 rounded-xl shadow-sm border mb-6" id="server-info">
+  <h3 class="font-semibold text-sm text-gray-600 mb-3">Server Connection</h3>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm" id="server-urls">
+    <div class="bg-gray-50 p-3 rounded-lg">
+      <p class="text-xs text-gray-400 uppercase">Local</p>
+      <p class="font-mono text-xs break-all" id="url-local">loading...</p>
+    </div>
+    <div class="bg-gray-50 p-3 rounded-lg">
+      <p class="text-xs text-gray-400 uppercase">Network (LAN)</p>
+      <p class="font-mono text-xs break-all" id="url-network">loading...</p>
+    </div>
+    <div class="bg-gray-50 p-3 rounded-lg">
+      <p class="text-xs text-gray-400 uppercase">Public (Worldwide)</p>
+      <p class="font-mono text-xs break-all text-green-600" id="url-public">
+        <span id="public-status">checking...</span>
+      </p>
+    </div>
+  </div>
+  <div class="mt-3 text-xs text-gray-400">
+    <span>💡 For worldwide access, run:</span>
+    <code class="bg-gray-100 px-1 rounded">ngrok http 3000</code>
+    <span> or set </span>
+    <code class="bg-gray-100 px-1 rounded">PUBLIC_URL</code>
+    <span> in .env</span>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="bg-white p-4 rounded-lg shadow-sm border"><p class="text-gray-500 text-xs uppercase">Users</p><p class="text-2xl font-bold"><%= totalUsers %></p></div>
+  <div class="bg-white p-4 rounded-lg shadow-sm border"><p class="text-gray-500 text-xs uppercase">QR Codes</p><p class="text-2xl font-bold"><%= totalQrs %></p></div>
+  <div class="bg-white p-4 rounded-lg shadow-sm border"><p class="text-gray-500 text-xs uppercase">Total Scans</p><p class="text-2xl font-bold text-indigo-600"><%= totalScans %></p></div>
+  <div class="bg-white p-4 rounded-lg shadow-sm border"><p class="text-gray-500 text-xs uppercase">Scans / 24h</p><p class="text-2xl font-bold"><%= activeScans %></p></div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+  <div class="bg-white p-4 rounded-xl shadow-sm border">
+    <h3 class="font-semibold text-sm text-gray-600 mb-3">Scans (Last 14 Days)</h3>
+    <canvas id="adminScansChart" height="150"></canvas>
+  </div>
+  <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+    <div class="px-4 py-3 border-b bg-gray-50"><h3 class="font-semibold text-sm text-gray-600">Users</h3></div>
+    <table class="w-full text-sm">
+      <thead class="text-xs text-gray-500 uppercase"><tr><th class="text-left px-4 py-2">Name</th><th class="text-left px-4 py-2">Email</th><th class="text-center px-4 py-2">Role</th><th class="text-right px-4 py-2">Actions</th></tr></thead>
+      <tbody class="divide-y">
+        <% users.forEach(u => { %>
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-2"><%= u.name || '-' %></td>
+          <td class="px-4 py-2 text-xs"><%= u.email %></td>
+          <td class="px-4 py-2 text-center">
+            <span class="px-2 py-0.5 rounded text-xs <%= u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600' %>"><%= u.role %></span>
+          </td>
+          <td class="px-4 py-2 text-right space-x-1">
+            <form method="POST" action="/admin/user/<%= u.id %>/toggle-admin" class="inline">
+              <button class="text-xs text-indigo-600 hover:underline"><%= u.role === 'admin' ? 'Demote' : 'Make Admin' %></button>
+            </form>
+            <% if (u.id !== user.id) { %>
+            <form method="POST" action="/admin/user/<%= u.id %>/delete" class="inline" onsubmit="return confirm('Delete user <%= u.email %>?')">
+              <button class="text-xs text-red-500 hover:underline">Delete</button>
+            </form>
+            <% } %>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+  <div class="px-4 py-3 border-b bg-gray-50 flex justify-between items-center">
+    <h3 class="font-semibold text-sm text-gray-600">All QR Codes (Last 50)</h3>
+  </div>
+  <table class="w-full text-sm">
+    <thead class="text-xs text-gray-500 uppercase">
+      <tr><th class="text-left px-4 py-2">Title</th><th class="text-left px-4 py-2">Owner</th><th class="text-center px-4 py-2">Type</th><th class="text-center px-4 py-2">Scans</th><th class="text-center px-4 py-2">Status</th><th class="text-right px-4 py-2"></th></tr>
+    </thead>
+    <tbody class="divide-y">
+      <% qrs.forEach(q => { %>
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-2"><%= q.title || 'Untitled' %></td>
+        <td class="px-4 py-2 text-xs text-gray-500"><%= q.owner_email %></td>
+        <td class="px-4 py-2 text-center"><span class="px-2 py-0.5 rounded text-xs <%= q.type === 'dynamic' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600' %>"><%= q.type %></span></td>
+        <td class="px-4 py-2 text-center font-mono"><%= q.scan_count %></td>
+        <td class="px-4 py-2 text-center text-xs"><%= q.is_active ? 'Active' : 'Inactive' %></td>
+        <td class="px-4 py-2 text-right">
+          <form method="POST" action="/admin/qr/<%= q.id %>/delete" class="inline" onsubmit="return confirm('Delete?')">
+            <button class="text-xs text-red-500 hover:underline">Delete</button>
+          </form>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+fetch('/api/server-info').then(function(r){return r.json()}).then(function(info){
+  document.getElementById('url-local').textContent = info.localUrl;
+  document.getElementById('url-network').textContent = info.networkUrl;
+  if (info.publicUrl) {
+    document.getElementById('url-public').innerHTML = '<a href="'+info.publicUrl+'" target="_blank" class="text-green-600 hover:underline">'+info.publicUrl+'</a>';
+  } else {
+    document.getElementById('public-status').textContent = 'Not available (run ngrok)';
+  }
+});
+
+var sd = JSON.parse('<%- scansByDay %>');
+new Chart(document.getElementById('adminScansChart'), {
+  type: 'line',
+  data: {
+    labels: sd.map(function(d){return d.date}),
+    datasets: [{label:'Scans', data: sd.map(function(d){return d.count}), borderColor:'#7c3aed', fill:true, backgroundColor:'rgba(124,58,237,0.1)', tension:0.3}]
+  },
+  options: {responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{stepSize:1}}}}
+});
+</script>
+<%- include('partials/footer') %>
