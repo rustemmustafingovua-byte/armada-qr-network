@@ -3,17 +3,40 @@ name: Deploy to Railway
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
+      - name: Login to Railway
+        run: railway login --token ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Set environment variables
+        run: |
+          railway variables set JWT_SECRET="${{ secrets.JWT_SECRET }}"
+          railway variables set NODE_ENV=production
+          railway variables set PUBLIC_URL="${{ secrets.PUBLIC_URL }}"
+
       - name: Deploy
-        run: railway up --service armada-qr-network --project ee29ae49-95b7-4519-bec9-037e7c1f96f9 --environment production
-        env:
-          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+        run: railway up --detach
+
+      - name: Wait for healthcheck
+        run: |
+          sleep 30
+          for i in {1..10}; do
+            if curl -sf "${{ secrets.PUBLIC_URL }}/health" | grep -q '"status":"ok"'; then
+              echo "✓ Deploy healthy"
+              exit 0
+            fi
+            echo "Waiting... ($i/10)"
+            sleep 10
+          done
+          echo "✗ Healthcheck failed"
+          exit 1
