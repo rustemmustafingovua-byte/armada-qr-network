@@ -144,7 +144,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res, next) => {
+function csrfCheck(req, res, next) {
   if (/^(GET|HEAD|OPTIONS)$/.test(req.method)) return next();
   if (req.path === '/login' || req.path === '/register') return next();
   const token = req.headers['x-csrf-token'] || req.body?._csrf;
@@ -154,6 +154,10 @@ app.use((req, res, next) => {
     return next(e);
   }
   next();
+}
+app.use((req, res, next) => {
+  if (req.path === '/create' || req.path.startsWith('/edit/')) return next();
+  csrfCheck(req, res, next);
 });
 
 // ── Routes ──

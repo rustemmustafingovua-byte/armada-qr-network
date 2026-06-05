@@ -16,6 +16,15 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const router = express.Router();
 const uploadDir = path.resolve(__dirname, '..', process.env.UPLOAD_DIR || './public/uploads');
 
+function csrfCheckSync(req) {
+  const token = req.headers['x-csrf-token'] || req.body?._csrf;
+  if (!token || token !== req.cookies?._csrf) {
+    const e = new Error('Invalid CSRF token');
+    e.status = 403; e.csrf = true;
+    return e;
+  }
+}
+
 // QR image memory cache (TTL 5 min)
 const qrCache = new Map();
 const CACHE_TTL = 300000;
@@ -73,6 +82,8 @@ router.get('/create', requireAuth, (req, res) => {
 router.post('/create', requireAuth, (req, res, next) => {
   upload.single('file')(req, res, (err) => {
     if (err) return res.render('create', { user: req.user, error: 'Upload error: ' + err.message });
+    const csrfErr = (() => { try { return csrfCheckSync(req); } catch(e) { return e; } })();
+    if (csrfErr) return next(csrfErr);
     handleCreate(req, res);
   });
 });
@@ -159,6 +170,8 @@ router.get('/edit/:id', requireAuth, asyncWrap(async (req, res) => {
 router.post('/edit/:id', requireAuth, (req, res, next) => {
   upload.single('file')(req, res, (err) => {
     if (err) return res.render('edit', { qr: null, user: req.user, error: 'Upload error: ' + err.message });
+    const csrfErr = (() => { try { return csrfCheckSync(req); } catch(e) { return e; } })();
+    if (csrfErr) return next(csrfErr);
     handleEdit(req, res);
   });
 });
