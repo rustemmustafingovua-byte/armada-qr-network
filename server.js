@@ -261,13 +261,11 @@ app.use((err, req, res, next) => {
 });
 
 (async () => {
-  await initialize();
-  await migrateV2();
-  await ensureAdmin();
-})().catch(err => {
-  logEvent('error', 'startup_failed', { msg: err.message });
-  process.exit(1);
-});
+  try { await initialize(); } catch (e) { logEvent('error', 'init_failed', { msg: e.message }); }
+  try { await migrateV2(); } catch (e) { logEvent('error', 'migrate_failed', { msg: e.message }); }
+  try { await ensureAdmin(); } catch (e) { logEvent('error', 'admin_failed', { msg: e.message }); }
+  logEvent('info', 'ready', { db: process.env.DATABASE_URL ? 'postgres' : 'sqlite' });
+})();
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   const localIP = getLocalIP();
