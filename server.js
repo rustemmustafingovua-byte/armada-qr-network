@@ -24,11 +24,27 @@ const app = express();
 const PORT = parseInt(process.env.PORT, 10) || 3000;
 const IS_PROD = process.env.NODE_ENV === 'production';
 
-const REQUIRED_ENV = ['JWT_SECRET'];
+const REQUIRED_ENV = [];
 for (const key of REQUIRED_ENV) {
   if (!process.env[key]) {
     console.error(`FATAL: Missing required environment variable: ${key}`);
     process.exit(1);
+  }
+}
+if (!process.env.JWT_SECRET) {
+  if (IS_PROD) {
+    const secretFile = path.join(__dirname, '.jwt-secret');
+    try {
+      process.env.JWT_SECRET = fs.readFileSync(secretFile, 'utf8').trim();
+      console.log('✓ JWT_SECRET loaded from .jwt-secret');
+    } catch {
+      process.env.JWT_SECRET = crypto.randomBytes(48).toString('hex');
+      try { fs.writeFileSync(secretFile, process.env.JWT_SECRET, { mode: 0o600 }); } catch {}
+      console.warn('⚠ Generated ephemeral JWT_SECRET — set JWT_SECRET in env for production persistence');
+    }
+  } else {
+    process.env.JWT_SECRET = crypto.randomBytes(48).toString('hex');
+    console.warn('⚠ Using dev JWT_SECRET — sessions reset on restart');
   }
 }
 if (process.env.JWT_SECRET.length < 32) {
