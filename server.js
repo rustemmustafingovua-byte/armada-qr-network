@@ -53,6 +53,10 @@ app.use(helmet({
 
 app.use(compression({ level: 6, threshold: 256 }));
 
+function postOnly(limiter) {
+  return (req, res, next) => req.method === 'POST' ? limiter(req, res, next) : next();
+}
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -61,8 +65,8 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req) => req.ip
 });
-app.use('/login', authLimiter);
-app.use('/register', authLimiter);
+app.use('/login', postOnly(authLimiter));
+app.use('/register', postOnly(authLimiter));
 
 const scanLimiter = rateLimit({
   windowMs: 1000,
@@ -86,7 +90,7 @@ const uploadLimiter = rateLimit({
   message: { error: 'Too many uploads, try later' },
   keyGenerator: (req) => req.ip
 });
-app.use('/create', uploadLimiter);
+app.use('/create', postOnly(uploadLimiter));
 
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 app.use(express.json({ limit: '1mb' }));
@@ -100,10 +104,12 @@ app.use(express.static(path.join(__dirname, 'public'), {
 
 const crypto = require('crypto');
 app.use((req, res, next) => {
-  if (!req.cookies?._csrf) {
-    res.cookie('_csrf', crypto.randomBytes(32).toString('hex'), { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 });
+  let token = req.cookies?._csrf;
+  if (!token) {
+    token = crypto.randomBytes(32).toString('hex');
+    res.cookie('_csrf', token, { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 });
   }
-  res.locals._csrf = req.cookies?._csrf || '';
+  res.locals._csrf = token;
   next();
 });
 
@@ -111,8 +117,9 @@ app.use((req, res, next) => {
   if (!/^(GET|HEAD|OPTIONS)$/.test(req.method)) {
     const token = req.headers['x-csrf-token'] || req.body?._csrf;
     if (!token || token !== req.cookies?._csrf) {
-      if (req.xhr || req.path.startsWith('/api/')) return res.status(403).json({ error: 'Invalid CSRF token' });
-      return res.status(403).render('public-error', { message: 'Invalid session', code: 403 });
+      const e = new Error('Invalid CSRF token');
+      e.status = 403; e.csrf = true;
+      return next(e);
     }
   }
   next();
@@ -139,6 +146,9 @@ app.get('/api/server-info', (req, res) => {
 });
 
 app.use((err, req, res, next) => {
+  if (err.csrf) {
+    return res.render('public-error', { message: 'Session expired, please go back and try again', code: 403 });
+  }
   console.error('Unhandled error:', err);
   if (req.xhr || req.path.startsWith('/api/')) {
     return res.status(500).json({ error: 'Internal server error' });
