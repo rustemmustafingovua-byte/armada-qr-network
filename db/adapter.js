@@ -486,6 +486,16 @@ async function migrateV2() {
             db.raw.exec(`DROP TABLE qr_messages`);
           }
 
+          const an = db.raw.prepare("SELECT sql FROM sqlite_master WHERE name='analytics'").get();
+          const hasAn = !!an;
+          let anRows = [];
+          if (hasAn) {
+            const anCols = db.raw.prepare("PRAGMA table_info(analytics)").all();
+            const anColNames = anCols.map(c => c.name);
+            anRows = db.raw.prepare(`SELECT ${anColNames.map(c => `"${c}"`).join(', ')} FROM analytics`).all();
+            db.raw.exec(`DROP TABLE analytics`);
+          }
+
           db.raw.exec(`ALTER TABLE qr_codes RENAME TO qr_codes_old`);
           db.raw.exec(SCHEMA_SQLITE);
           const rows = db.raw.prepare(`SELECT ${colList} FROM qr_codes_old`).all();
@@ -509,6 +519,15 @@ async function migrateV2() {
             const ins3 = db.raw.prepare(`INSERT INTO qr_messages (${qmColNames.map(c => `"${c}"`).join(', ')}) VALUES (${qmPlaceholders})`);
             for (const r of qmRows) ins3.run(...qmColNames.map(n => r[n]));
             console.log(`  ✓ Migrated ${qmRows.length} qr_messages rows`);
+          }
+
+          if (hasAn && anRows.length > 0) {
+            const anColInfo = db.raw.prepare("PRAGMA table_info(analytics)").all();
+            const anColNames = anColInfo.map(c => c.name);
+            const anPlaceholders = anColNames.map(() => '?').join(', ');
+            const ins4 = db.raw.prepare(`INSERT INTO analytics (${anColNames.map(c => `"${c}"`).join(', ')}) VALUES (${anPlaceholders})`);
+            for (const r of anRows) ins4.run(...anColNames.map(n => r[n]));
+            console.log(`  ✓ Migrated ${anRows.length} analytics rows`);
           }
 
           db.raw.pragma('foreign_keys = ON');
