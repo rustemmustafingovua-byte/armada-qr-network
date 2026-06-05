@@ -104,6 +104,8 @@ app.use('/', adminRoutes);
 
 app.get('/', (req, res) => res.redirect('/dashboard'));
 
+app.get('/ping', (req, res) => res.send('pong'));
+
 app.get('/api/server-info', (req, res) => {
   res.json({
     localUrl: `http://localhost:${PORT}`,

@@ -53,7 +53,17 @@ function validateMagicBytes(filepath, ext) {
     fs.closeSync(fd);
     const sigs = MAGIC_BYTES[ext.replace('.', '')] || [];
     if (sigs.length === 0) return true;
-    return sigs.some(sig => buffer.slice(0, sig.length).toString('binary') === sig);
+    return sigs.some(sig => {
+      const slice = buffer.slice(0, sig.length).toString('binary');
+      if (slice === sig) return true;
+      // Check for common prefixes (BOM, whitespace)
+      for (let skip = 0; skip < 4; skip++) {
+        const c = buffer[skip];
+        if (c === 0xEF || c === 0xBB || c === 0xBF || c === 0x20 || c === 0x09 || c === 0x0A || c === 0x0D) continue;
+        return buffer.slice(skip, skip + sig.length).toString('binary') === sig;
+      }
+      return false;
+    });
   } catch { return false; }
 }
 
