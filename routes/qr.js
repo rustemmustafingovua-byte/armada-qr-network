@@ -130,12 +130,6 @@ async function handleCreate(req, res) {
       fileName = Buffer.from(req.file.originalname, 'latin1').toString('utf8').replace(/[<>:"/\\|?*]/g, '_');
       const rawPath = path.join(uploadDir, filePath);
       fileSize = fs.statSync(rawPath).size;
-      await compressFile(rawPath);
-      const compressedSize = fs.statSync(rawPath).size;
-      await q.run(
-        'INSERT INTO file_uploads (qr_id, file_path, original_name, mime_type, original_size, compressed_size) VALUES (?, ?, ?, ?, ?, ?)',
-        [id, filePath, fileName, req.file.mimetype || 'application/octet-stream', fileSize, compressedSize]
-      );
     }
 
     await q.run(
@@ -143,6 +137,16 @@ async function handleCreate(req, res) {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [id, req.user.id, title, type, content_type, target_url, filePath, fileName, vcard_data, text_data, password_hash, verify_code_hash, expires_at, scan_limit, fg_color, bg_color, dot_style, fileSize]
     );
+
+    if (req.file) {
+      const rawPath = path.join(uploadDir, filePath);
+      await compressFile(rawPath);
+      const compressedSize = fs.statSync(rawPath).size;
+      await q.run(
+        'INSERT INTO file_uploads (qr_id, file_path, original_name, mime_type, original_size, compressed_size) VALUES (?, ?, ?, ?, ?, ?)',
+        [id, filePath, fileName, req.file.mimetype || 'application/octet-stream', fileSize, compressedSize]
+      );
+    }
 
     const baseUrl = getPublicUrl(req);
     const qrUrl = type === 'static'
