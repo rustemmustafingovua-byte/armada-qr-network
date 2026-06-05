@@ -546,19 +546,19 @@ async function migrateV2() {
 
 async function ensureAdmin() {
   try {
-    const countRow = await db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").get();
+    const countRow = await q.get("SELECT COUNT(*) as count FROM users WHERE role = 'admin'");
     const adminCount = parseInt(countRow.count);
     if (adminCount > 0) return;
-    const totalRow = await db.prepare('SELECT COUNT(*) as count FROM users').get();
+    const totalRow = await q.get('SELECT COUNT(*) as count FROM users');
     const userCount = parseInt(totalRow.count);
     if (userCount > 0) {
-      const firstUser = await db.prepare('SELECT id FROM users ORDER BY id ASC LIMIT 1').get();
-      await db.prepare('UPDATE users SET role = ? WHERE id = ?').run('admin', firstUser.id);
+      const firstUser = await q.get('SELECT id FROM users ORDER BY id ASC LIMIT 1');
+      await q.run('UPDATE users SET role = ? WHERE id = ?', ['admin', firstUser.id]);
       console.log(`  ✓ User ${firstUser.id} promoted to admin`);
     } else {
       const bcrypt = require('bcryptjs');
       const hash = await bcrypt.hash('admin123', 12);
-      await db.prepare('INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)').run('admin@armada.com', hash, 'Admin', 'admin');
+      await q.run('INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)', ['admin@armada.com', hash, 'Admin', 'admin']);
       console.log('  ✓ Default admin created: admin@armada.com / admin123');
     }
   } catch (e) {
