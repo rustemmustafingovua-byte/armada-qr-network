@@ -3,11 +3,15 @@ const { logEvent } = require('../utils/logger');
 
 function fixSQL(sql) {
   if (db.type !== 'postgres') return sql;
-  return sql
+  let out = sql;
+  out = out
     .replace(/DATE\('now',\s*'(-?\d+)\s+(\w+)'\)/g, "CURRENT_TIMESTAMP - INTERVAL '$1 $2'")
     .replace(/DATE\('now'\)/g, 'CURRENT_DATE')
     .replace(/scanned_at >= DATE\('now'\)/g, 'scanned_at >= CURRENT_DATE')
     .replace(/last_insert_rowid\(\)/g, 'lastval()');
+  let idx = 0;
+  out = out.replace(/\?/g, () => { idx += 1; return '$' + idx; });
+  return out;
 }
 
 const q = {
