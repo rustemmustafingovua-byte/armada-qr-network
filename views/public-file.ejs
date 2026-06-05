@@ -4,22 +4,25 @@
     <div class="text-center mb-6">
       <div class="text-5xl mb-3">📁</div>
       <h1 class="text-xl font-bold dark:text-white break-words"><%= title %></h1>
-      <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Files available for download</p>
+      <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
+        <% if (owner) { %><span class="text-indigo-600 dark:text-indigo-400 font-medium">👁 Owner preview</span> — visitors will see this
+        <% } else { %>Files available for download<% } %>
+      </p>
     </div>
 
     <% if (hasVerifyCode && !verified) { %>
     <div id="verify-section" class="bg-gray-50 dark:bg-gray-900 rounded-lg p-5 mb-6 border dark:border-gray-700">
-      <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">Verification Required</h3>
+      <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">🔐 Verification Required</h3>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Enter the verification code to access files and send messages</p>
       <div class="flex gap-2">
-        <input type="text" id="verify-code-input" placeholder="Enter verification code" class="flex-1 px-3 py-2.5 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        <input type="text" id="verify-code-input" placeholder="Enter code" autocomplete="off" class="flex-1 px-3 py-2.5 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
         <button onclick="verifyCode()" id="verify-btn" class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 font-medium text-sm btn-scale">Verify</button>
       </div>
       <p id="verify-error" class="text-red-500 text-sm mt-2 hidden"></p>
     </div>
     <% } %>
 
-    <div id="content-section" class="<%= hasVerifyCode && !verified ? 'hidden' : '' %>">
+    <div id="content-section" class="<%= (hasVerifyCode && !verified) ? 'hidden' : '' %>">
       <% if (files.length === 0) { %>
       <div class="text-center py-8">
         <p class="text-gray-400 dark:text-gray-500">No files attached to this QR code</p>
@@ -36,68 +39,76 @@
           </div>
           <a href="/d/<%= f.id %>"
              class="btn-scale bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-xs font-medium whitespace-nowrap ml-3 download-link">
-            Download
+            ⬇ Download
           </a>
         </div>
-        <% }) %>
+        <% }); %>
       </div>
       <% } %>
 
       <hr class="border-gray-200 dark:border-gray-700 my-6">
 
       <div id="chat-section">
-        <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">💬 Messages</h3>
-        <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Send a message to the QR code owner</p>
+        <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">💬 Send a Message</h3>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Your message will be delivered to the owner of this QR code</p>
 
-        <div id="chat-messages" class="space-y-3 mb-4 max-h-80 overflow-y-auto"></div>
-
-        <div class="flex gap-2 mb-2">
-          <input type="text" id="chat-name" placeholder="Your name (optional)" maxlength="100" class="w-1/3 px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          <input type="text" id="chat-input" placeholder="Type your message..." maxlength="2000" class="flex-1 px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          <button onclick="sendMessage()" id="chat-send-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium text-sm btn-scale">Send</button>
+        <div id="chat-messages" class="space-y-3 mb-4 max-h-80 overflow-y-auto bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border dark:border-gray-700">
+          <p class="text-xs text-gray-400 dark:text-gray-500 text-center py-2">No messages yet</p>
         </div>
-        <p id="chat-status" class="text-xs text-gray-400 hidden"></p>
+
+        <div class="flex flex-col sm:flex-row gap-2 mb-2">
+          <input type="text" id="chat-name" placeholder="Your name (optional)" maxlength="100" class="sm:w-1/3 px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          <input type="text" id="chat-input" placeholder="Type your message..." maxlength="2000" class="flex-1 px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" onkeydown="if(event.key==='Enter')sendMessage()">
+          <button onclick="sendMessage()" id="chat-send-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium text-sm btn-scale whitespace-nowrap">Send</button>
+        </div>
+        <p id="chat-status" class="text-xs text-gray-400 dark:text-gray-500 hidden"></p>
       </div>
     </div>
   </div>
 </div>
 
+<div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
 <script>
 window.__verifyCode = '';
 var qrId = '<%= qrId %>';
+var isOwner = <%= owner ? 'true' : 'false' %>;
+var hasVerifyCode = <%= hasVerifyCode ? 'true' : 'false' %>;
+
+document.getElementById('chat-input')?.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
 
 function verifyCode() {
   var code = document.getElementById('verify-code-input').value.trim();
-  if (!code) { document.getElementById('verify-error').textContent = 'Enter verification code'; document.getElementById('verify-error').classList.remove('hidden'); return; }
-
+  if (!code) { showError('verify-error', 'Enter verification code'); return; }
   var btn = document.getElementById('verify-btn');
   btn.disabled = true; btn.textContent = 'Verifying...';
-
   fetch('/api/verify-code/' + qrId, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code: code })
   })
-  .then(function(r) { return r.json(); })
-  .then(function(d) {
-    if (d.valid) {
+  .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, d: d }; }); })
+  .then(function(res) {
+    if (res.d.valid) {
       window.__verifyCode = code;
       document.getElementById('verify-section').classList.add('hidden');
       document.getElementById('content-section').classList.remove('hidden');
-      // Update all download links to include the verification code
-      document.querySelectorAll('a[href^="/d/"]').forEach(function(a) {
-        a.href = a.href.split('?')[0] + '?code=' + encodeURIComponent(code);
+      document.querySelectorAll('.download-link').forEach(function(a) {
+        var u = new URL(a.href, window.location.origin);
+        u.searchParams.set('code', code);
+        a.href = u.toString();
       });
+      document.cookie = 'vc_' + qrId + '=1; path=/; max-age=3600; SameSite=Lax';
+      showToast('Verified!', 'success');
       loadMessages();
     } else {
-      document.getElementById('verify-error').textContent = d.error || 'Invalid code';
-      document.getElementById('verify-error').classList.remove('hidden');
+      showError('verify-error', res.d.error || 'Invalid code');
       btn.disabled = false; btn.textContent = 'Verify';
     }
   })
   .catch(function() {
-    document.getElementById('verify-error').textContent = 'Verification failed';
-    document.getElementById('verify-error').classList.remove('hidden');
+    showError('verify-error', 'Verification failed');
     btn.disabled = false; btn.textContent = 'Verify';
   });
 }
@@ -106,35 +117,34 @@ function sendMessage() {
   var name = document.getElementById('chat-name').value.trim() || 'Anonymous';
   var msg = document.getElementById('chat-input').value.trim();
   if (!msg) return;
-
   var btn = document.getElementById('chat-send-btn');
-  btn.disabled = true; btn.textContent = 'Sending...';
-
+  btn.disabled = true; btn.textContent = '...';
   fetch('/api/messages/' + qrId, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name: name, message: msg })
   })
-  .then(function(r) { return r.json(); })
-  .then(function(d) {
-    if (d.success) {
+  .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, d: d }; }); })
+  .then(function(res) {
+    if (res.ok && res.d.success) {
       document.getElementById('chat-input').value = '';
-      addMessage(d.message, true);
+      addMessage(res.d.message, true);
+      showToast('Message sent!', 'success');
+    } else {
+      showToast(res.d.error || 'Failed to send', 'error');
     }
     btn.disabled = false; btn.textContent = 'Send';
   })
-  .catch(function() {
-    btn.disabled = false; btn.textContent = 'Send';
-  });
+  .catch(function() { btn.disabled = false; btn.textContent = 'Send'; showToast('Network error', 'error'); });
 }
 
 function addMessage(msg, isNew) {
   var container = document.getElementById('chat-messages');
+  if (container.querySelector('p.text-xs.text-center')) container.innerHTML = '';
   var div = document.createElement('div');
-  div.className = 'bg-gray-50 dark:bg-gray-900 rounded-lg px-3 py-2 border dark:border-gray-700' + (isNew ? ' border-indigo-300 dark:border-indigo-600' : '');
-  div.innerHTML = '<div class="flex justify-between items-start"><span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">' + escapeHtml(msg.sender_name) + '</span><span class="text-xs text-gray-400">' + (msg.created_at || 'just now') + '</span></div><p class="text-sm dark:text-white mt-1">' + escapeHtml(msg.message) + '</p>';
+  div.className = 'bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border dark:border-gray-700' + (isNew ? ' border-indigo-300 dark:border-indigo-600' : '');
+  div.innerHTML = '<div class="flex justify-between items-start gap-2"><span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">' + escapeHtml(msg.sender_name) + '</span><span class="text-xs text-gray-400 whitespace-nowrap">' + (msg.created_at || 'just now') + '</span></div><p class="text-sm dark:text-white mt-1 break-words">' + escapeHtml(msg.message) + '</p>';
   if (msg.reply) {
-    div.innerHTML += '<div class="mt-2 pl-3 border-l-2 border-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 rounded-r px-2 py-1"><span class="text-xs font-medium text-indigo-600 dark:text-indigo-400">Reply:</span><p class="text-sm dark:text-gray-200">' + escapeHtml(msg.reply) + '</p></div>';
+    div.innerHTML += '<div class="mt-2 pl-3 border-l-2 border-green-400 bg-green-50 dark:bg-green-900/30 rounded-r px-2 py-1"><span class="text-xs font-medium text-green-600 dark:text-green-400">↩ Owner reply:</span><p class="text-sm dark:text-gray-200 mt-1 break-words">' + escapeHtml(msg.reply) + '</p></div>';
   }
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
@@ -144,11 +154,11 @@ function loadMessages() {
   fetch('/api/messages/' + qrId + '/public')
   .then(function(r) { return r.json(); })
   .then(function(d) {
-    if (d.messages) {
+    if (d.messages && d.messages.length) {
       document.getElementById('chat-messages').innerHTML = '';
       d.messages.forEach(function(m) { addMessage(m, false); });
     }
-  });
+  }).catch(function() {});
 }
 
 function escapeHtml(text) {
@@ -157,8 +167,22 @@ function escapeHtml(text) {
   return d.innerHTML;
 }
 
+function showError(id, msg) {
+  var el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+function showToast(message, type) {
+  var c = document.getElementById('toast-container');
+  var t = document.createElement('div');
+  t.className = 'px-4 py-2 rounded-lg shadow-lg text-sm font-medium ' + (type === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white');
+  t.textContent = message;
+  c.appendChild(t);
+  setTimeout(function() { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(function() { t.remove(); }, 300); }, 2500);
+}
+
 <% if (verified) { %>
-window.__verifyCode = '<%= typeof verifyCode !== 'undefined' ? verifyCode : '' %>';
 loadMessages();
 <% } %>
 </script>

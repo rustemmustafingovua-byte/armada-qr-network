@@ -7,16 +7,24 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
       - PORT=3000
-      - UPLOAD_DIR=./public/uploads
-      - MAX_SCAN_RATE=10
+      - UPLOAD_DIR=/app/public/uploads
+      - DB_PATH=/app/db/qrmaster.db
+      - MAX_SCAN_RATE=15
+      - BCRYPT_ROUNDS=12
       - PUBLIC_URL=${PUBLIC_URL:-}
       - DATABASE_URL=${DATABASE_URL:-}
     volumes:
       - uploads:/app/public/uploads
       - dbdata:/app/db
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 volumes:
   uploads:

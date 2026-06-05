@@ -1,79 +1,114 @@
 <%- include('partials/header') %>
-<%
-  var scansByDayData = JSON.parse(typeof scansByDay !== 'undefined' ? scansByDay : '[]');
-  var osStatsData = JSON.parse(typeof osStats !== 'undefined' ? osStats : '[]');
-  var deviceStatsData = JSON.parse(typeof deviceStats !== 'undefined' ? deviceStats : '[]');
-  var browserStatsData = JSON.parse(typeof browserStats !== 'undefined' ? browserStats : '[]');
-  var countryStatsData = JSON.parse(typeof countryStats !== 'undefined' ? countryStats : '[]');
-%>
-<div class="mb-6 fade-in">
-  <div class="flex justify-between items-center">
+<div class="max-w-4xl mx-auto fade-in">
+  <div class="flex justify-between items-center mb-6">
     <div>
       <h1 class="text-2xl font-bold dark:text-white">Analytics: <%= qr.title || 'Untitled' %></h1>
       <p class="text-gray-500 dark:text-gray-400 text-sm">QR ID: <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded dark:text-gray-300"><%= qr.id %></code></p>
     </div>
-    <div class="text-right">
-      <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400"><%= totalScans %></p>
-      <p class="text-gray-500 dark:text-gray-400 text-xs uppercase">Total Scans</p>
+    <div class="flex gap-2 items-center">
+      <a href="/analytics/<%= qr.id %>/export" class="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded hover:bg-gray-300 dark:hover:bg-gray-600">📊 Export CSV</a>
+      <div class="text-right">
+        <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400"><%= totalScans %></p>
+        <p class="text-gray-500 dark:text-gray-400 text-xs uppercase">Total Scans</p>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-  <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
-    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Scans (Last 30 Days)</h3>
-    <canvas id="scansChart" height="200"></canvas>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
+      <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Unique</p>
+      <p class="text-xl font-bold dark:text-white"><%= uniqueScans || 0 %></p>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
+      <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Today</p>
+      <p class="text-xl font-bold dark:text-white" id="today-scans">-</p>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
+      <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">This Week</p>
+      <p class="text-xl font-bold dark:text-white" id="week-scans">-</p>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
+      <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Content Type</p>
+      <p class="text-xl font-bold dark:text-white"><%= qr.content_type %></p>
+    </div>
   </div>
-  <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
-    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Operating Systems</h3>
-    <canvas id="osChart" height="200"></canvas>
-  </div>
-  <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
-    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Devices</h3>
-    <canvas id="deviceChart" height="200"></canvas>
-  </div>
-  <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
-    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Browsers</h3>
-    <canvas id="browserChart" height="200"></canvas>
-  </div>
-</div>
 
-<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden mb-6">
-  <div class="px-4 py-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400">Countries</h3>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
+      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Scans (Last 30 Days)</h3>
+      <canvas id="scansChart" height="200"></canvas>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
+      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Scans by Hour</h3>
+      <canvas id="hourlyChart" height="200"></canvas>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
+      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Operating Systems</h3>
+      <canvas id="osChart" height="200"></canvas>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
+      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Devices</h3>
+      <canvas id="deviceChart" height="200"></canvas>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
+      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Browsers</h3>
+      <canvas id="browserChart" height="200"></canvas>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
+      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Top Referrers</h3>
+      <canvas id="refererChart" height="200"></canvas>
+    </div>
   </div>
-  <table class="w-full text-sm">
-    <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase"><tr><th class="text-left px-4 py-2">Country</th><th class="text-right px-4 py-2">Scans</th></tr></thead>
-    <tbody class="divide-y dark:divide-gray-700">
-      <% if (countryStatsData.length === 0) { %><tr><td class="px-4 py-3 text-gray-400 dark:text-gray-500 text-center" colspan="2">No data yet</td></tr><% } %>
-      <% countryStatsData.forEach(function(c) { %><tr class="hover:bg-gray-50 dark:hover:bg-gray-700"><td class="px-4 py-2 dark:text-white"><%= c.country %></td><td class="px-4 py-2 text-right font-mono dark:text-white"><%= c.count %></td></tr><% }) %>
-    </tbody>
-  </table>
-</div>
 
-<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
-  <div class="px-4 py-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex justify-between items-center">
-    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400">Recent Scans</h3>
-    <span class="text-xs text-gray-400 dark:text-gray-500">Last 50</span>
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden mb-6">
+    <div class="px-4 py-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400">Countries</h3>
+    </div>
+    <table class="w-full text-sm">
+      <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase"><tr><th class="text-left px-4 py-2">Country</th><th class="text-right px-4 py-2">Scans</th><th class="text-right px-4 py-2 w-32">Distribution</th></tr></thead>
+      <tbody class="divide-y dark:divide-gray-700">
+        <% if (countryStats.length === 0) { %><tr><td class="px-4 py-3 text-gray-400 dark:text-gray-500 text-center" colspan="3">No data yet</td></tr><% } %>
+        <% countryStats.forEach(function(c) { %>
+        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+          <td class="px-4 py-2 dark:text-white"><%= c.country %></td>
+          <td class="px-4 py-2 text-right font-mono dark:text-white"><%= c.count %></td>
+          <td class="px-4 py-2">
+            <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+              <div class="bg-indigo-600 h-2" style="width:<%= (c.count / totalScans * 100).toFixed(1) %>%"></div>
+            </div>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
   </div>
-  <table class="w-full text-sm">
-    <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase">
-      <tr><th class="text-left px-4 py-2">Time</th><th class="text-left px-4 py-2">Device</th><th class="text-left px-4 py-2">OS</th><th class="text-left px-4 py-2">Browser</th><th class="text-left px-4 py-2">Country</th><th class="text-left px-4 py-2">IP</th></tr>
-    </thead>
-    <tbody class="divide-y dark:divide-gray-700">
-      <% if (recentScans.length === 0) { %><tr><td class="px-4 py-3 text-gray-400 dark:text-gray-500 text-center" colspan="6">No scans yet</td></tr><% } %>
-      <% recentScans.forEach(function(s) { %><tr class="hover:bg-gray-50 dark:hover:bg-gray-700"><td class="px-4 py-2 text-xs dark:text-gray-300"><%= s.scanned_at %></td><td class="px-4 py-2 dark:text-white"><%= s.device_type %></td><td class="px-4 py-2 dark:text-white"><%= s.os %></td><td class="px-4 py-2 dark:text-white"><%= s.browser %></td><td class="px-4 py-2 dark:text-white"><%= s.country %></td><td class="px-4 py-2 text-xs text-gray-400 dark:text-gray-500"><%= s.ip_address %></td></tr><% }) %>
-    </tbody>
-  </table>
-</div>
 
-<div id="messages-section" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden mb-6">
-  <div class="px-4 py-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex justify-between items-center">
-    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400">💬 Messages from Users</h3>
-    <span class="text-xs text-gray-400 dark:text-gray-500" id="msg-count">Loading...</span>
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden mb-6">
+    <div class="px-4 py-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex justify-between items-center">
+      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400">Recent Scans</h3>
+      <span class="text-xs text-gray-400 dark:text-gray-500">Last 100</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase">
+          <tr><th class="text-left px-4 py-2">Time</th><th class="text-left px-4 py-2">Device</th><th class="text-left px-4 py-2">OS</th><th class="text-left px-4 py-2">Browser</th><th class="text-left px-4 py-2">Country</th><th class="text-left px-4 py-2">IP</th></tr>
+        </thead>
+        <tbody class="divide-y dark:divide-gray-700">
+          <% if (recentScans.length === 0) { %><tr><td class="px-4 py-3 text-gray-400 dark:text-gray-500 text-center" colspan="6">No scans yet</td></tr><% } %>
+          <% recentScans.forEach(function(s) { %><tr class="hover:bg-gray-50 dark:hover:bg-gray-700"><td class="px-4 py-2 text-xs dark:text-gray-300 whitespace-nowrap"><%= s.scanned_at %></td><td class="px-4 py-2 dark:text-white"><%= s.device_type %></td><td class="px-4 py-2 dark:text-white"><%= s.os %></td><td class="px-4 py-2 dark:text-white"><%= s.browser %></td><td class="px-4 py-2 dark:text-white"><%= s.country %></td><td class="px-4 py-2 text-xs text-gray-400 dark:text-gray-500"><%= s.ip_address %></td></tr><% }) %>
+        </tbody>
+      </table>
+    </div>
   </div>
-  <div id="messages-list" class="divide-y dark:divide-gray-700 max-h-96 overflow-y-auto">
-    <div class="px-4 py-6 text-center text-gray-400 dark:text-gray-500 text-sm">Loading messages...</div>
+
+  <div id="messages-section" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden mb-6">
+    <div class="px-4 py-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex justify-between items-center">
+      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400">💬 Messages from Users</h3>
+      <span class="text-xs text-gray-400 dark:text-gray-500" id="msg-count">Loading...</span>
+    </div>
+    <div id="messages-list" class="divide-y dark:divide-gray-700 max-h-[500px] overflow-y-auto">
+      <div class="px-4 py-6 text-center text-gray-400 dark:text-gray-500 text-sm">Loading messages...</div>
+    </div>
   </div>
 </div>
 
@@ -91,11 +126,11 @@ fetch('/api/messages/<%= qr.id %>').then(function(r){return r.json()}).then(func
   d.messages.forEach(function(m) {
     var div = document.createElement('div');
     div.className = 'px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700' + (m.is_read ? '' : ' bg-indigo-50 dark:bg-indigo-900/20');
-    div.innerHTML = '<div class="flex justify-between items-start"><span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">' + esc(m.sender_name) + '</span><span class="text-xs text-gray-400">' + m.created_at + '</span></div><p class="text-sm dark:text-white mt-1">' + esc(m.message) + '</p>';
+    div.innerHTML = '<div class="flex justify-between items-start gap-2"><span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">' + esc(m.sender_name) + '</span><span class="text-xs text-gray-400 whitespace-nowrap">' + m.created_at + '</span></div><p class="text-sm dark:text-white mt-1 break-words">' + esc(m.message) + '</p>';
     if (m.reply) {
-      div.innerHTML += '<div class="mt-2 pl-3 border-l-2 border-green-400 bg-green-50 dark:bg-green-900/30 rounded-r px-2 py-1"><span class="text-xs font-medium text-green-600 dark:text-green-400">Your reply:</span><p class="text-sm dark:text-gray-200">' + esc(m.reply) + '</p></div>';
+      div.innerHTML += '<div class="mt-2 pl-3 border-l-2 border-green-400 bg-green-50 dark:bg-green-900/30 rounded-r px-2 py-1"><span class="text-xs font-medium text-green-600 dark:text-green-400">↩ Your reply:</span><p class="text-sm dark:text-gray-200 mt-1 break-words">' + esc(m.reply) + '</p></div>';
     } else {
-      div.innerHTML += '<div class="mt-2 flex gap-2"><input type="text" id="reply-input-' + m.id + '" placeholder="Reply..." maxlength="2000" class="flex-1 px-2 py-1 text-xs border dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:outline-none"><button onclick="replyTo(' + m.id + ')" class="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 font-medium">Reply</button></div>';
+      div.innerHTML += '<div class="mt-2 flex gap-2"><input type="text" id="reply-input-' + m.id + '" placeholder="Type reply..." maxlength="2000" class="flex-1 px-2 py-1 text-xs border dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:outline-none" onkeydown="if(event.key===\'Enter\')replyTo(' + m.id + ')"><button onclick="replyTo(' + m.id + ')" class="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 font-medium">Reply</button></div>';
     }
     if (!m.is_read) {
       fetch('/api/messages/read/' + m.id, { method: 'POST' }).catch(function(){});
@@ -119,47 +154,61 @@ function replyTo(id) {
 }
 
 function esc(t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
-</script>
 
-<script>
-var scansData = JSON.parse('<%- scansByDay %>');
-new Chart(document.getElementById('scansChart'), {
+function initChart(id, config) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  function go() { if (window.Chart) new Chart(el, config); else setTimeout(go, 100); }
+  go();
+}
+
+var scansData = <%- scansByDay %>;
+var today = new Date().toISOString().substring(0, 10);
+var weekAgo = new Date(Date.now() - 7*86400000).toISOString().substring(0, 10);
+document.getElementById('today-scans').textContent = scansData.filter(function(d){return d.date===today}).reduce(function(a,b){return a+b.count}, 0);
+document.getElementById('week-scans').textContent = scansData.filter(function(d){return d.date>=weekAgo}).reduce(function(a,b){return a+b.count}, 0);
+
+initChart('scansChart', {
   type: 'line',
-  data: {
-    labels: scansData.map(function(d) { return d.date; }),
-    datasets: [{ label: 'Scans', data: scansData.map(function(d) { return d.count; }), borderColor: '#4f46e5', fill: true, backgroundColor: 'rgba(79,70,229,0.1)', tension: 0.3 }]
-  },
-  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+  data: { labels: scansData.map(function(d) { return d.date; }), datasets: [{ label: 'Scans', data: scansData.map(function(d) { return d.count; }), borderColor: '#4f46e5', fill: true, backgroundColor: 'rgba(79,70,229,0.1)', tension: 0.3 }] },
+  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } } }
 });
 
-var osData = JSON.parse('<%- osStats %>');
-new Chart(document.getElementById('osChart'), {
-  type: 'pie',
-  data: {
-    labels: osData.map(function(d) { return d.os; }),
-    datasets: [{ data: osData.map(function(d) { return d.count; }), backgroundColor: ['#4f46e5','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6'] }]
-  },
-  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-});
-
-var deviceData = JSON.parse('<%- deviceStats %>');
-new Chart(document.getElementById('deviceChart'), {
-  type: 'doughnut',
-  data: {
-    labels: deviceData.map(function(d) { return d.device_type; }),
-    datasets: [{ data: deviceData.map(function(d) { return d.count; }), backgroundColor: ['#4f46e5','#06b6d4','#10b981'] }]
-  },
-  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-});
-
-var browserData = JSON.parse('<%- browserStats %>');
-new Chart(document.getElementById('browserChart'), {
+var hourlyData = <%- hourlyStats %>;
+var hours = Array.from({length: 24}, function(_, i) { var h = String(i).padStart(2, '0'); var found = hourlyData.find(function(d) { return String(d.hour) === h; }); return found ? found.count : 0; });
+initChart('hourlyChart', {
   type: 'bar',
-  data: {
-    labels: browserData.map(function(d) { return d.browser; }),
-    datasets: [{ label: 'Scans', data: browserData.map(function(d) { return d.count; }), backgroundColor: '#4f46e5' }]
-  },
-  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+  data: { labels: Array.from({length:24}, function(_,i){return i+':00'}), datasets: [{ label: 'Scans', data: hours, backgroundColor: '#06b6d4' }] },
+  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } } }
+});
+
+var osData = <%- osStats %>;
+initChart('osChart', {
+  type: 'doughnut',
+  data: { labels: osData.map(function(d) { return d.os; }), datasets: [{ data: osData.map(function(d) { return d.count; }), backgroundColor: ['#4f46e5','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6'] }] },
+  options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
+});
+
+var deviceData = <%- deviceStats %>;
+initChart('deviceChart', {
+  type: 'pie',
+  data: { labels: deviceData.map(function(d) { return d.device_type; }), datasets: [{ data: deviceData.map(function(d) { return d.count; }), backgroundColor: ['#4f46e5','#06b6d4','#10b981'] }] },
+  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+});
+
+var browserData = <%- browserStats %>;
+initChart('browserChart', {
+  type: 'bar',
+  data: { labels: browserData.map(function(d) { return d.browser; }), datasets: [{ label: 'Scans', data: browserData.map(function(d) { return d.count; }), backgroundColor: '#8b5cf6' }] },
+  options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } } }
+});
+
+var refData = <%- refererStats %>;
+if (refData.length === 0) refData = [{ referer: 'Direct', count: <%= totalScans %> }];
+initChart('refererChart', {
+  type: 'doughnut',
+  data: { labels: refData.map(function(d) { var r = d.referer || 'Direct'; try { return new URL(r).hostname; } catch { return r.substring(0, 30); } }), datasets: [{ data: refData.map(function(d) { return d.count; }), backgroundColor: ['#4f46e5','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] },
+  options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
 });
 </script>
 <%- include('partials/footer') %>

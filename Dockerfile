@@ -1,18 +1,30 @@
 FROM node:22-alpine
 
+RUN apk add --no-cache python3 make g++ tini
+
 WORKDIR /app
 
-RUN apk add --no-cache python3 make g++
-
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 COPY . .
 
-RUN mkdir -p /data/uploads /data/db
+RUN mkdir -p /app/public/uploads /app/db && \
+    addgroup -g 1001 nodejs && \
+    adduser -S -u 1001 -G nodejs nodejs && \
+    chown -R nodejs:nodejs /app
+
+USER nodejs
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV UPLOAD_DIR=/app/public/uploads
+ENV DB_PATH=/app/db/qrmaster.db
 
 EXPOSE 3000
 
-ENV NODE_ENV=production
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/health || exit 1
 
+ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["node", "server.js"]

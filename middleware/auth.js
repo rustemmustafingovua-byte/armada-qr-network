@@ -25,37 +25,33 @@ function setTokenCookie(res, token) {
 }
 
 function clearTokenCookie(res) {
-  res.clearCookie('token', { path: '/' });
+  res.cookie('token', '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 0, path: '/' });
 }
 
 function requireAuth(req, res, next) {
   const token = req.cookies?.token;
   if (!token) {
-    if (req.xhr || req.path.startsWith('/api/')) {
+    if (req.xhr || req.path.startsWith('/api/') || req.accepts('json') === 'json') {
       return res.status(401).json({ error: 'Authentication required' });
     }
     return res.redirect('/login');
   }
   try {
     req.user = jwt.verify(token, JWT_SECRET);
-    next();
+    return next();
   } catch (err) {
     clearTokenCookie(res);
     if (req.xhr || req.path.startsWith('/api/')) {
       return res.status(401).json({ error: 'Session expired' });
     }
-    res.redirect('/login');
+    return res.redirect('/login');
   }
 }
 
 function optionalAuth(req, res, next) {
   const token = req.cookies?.token;
   if (token) {
-    try {
-      req.user = jwt.verify(token, JWT_SECRET);
-    } catch {
-      req.user = null;
-    }
+    try { req.user = jwt.verify(token, JWT_SECRET); } catch { req.user = null; }
   }
   next();
 }

@@ -7,11 +7,18 @@
   <a href="/create" class="btn-scale bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 font-medium text-sm whitespace-nowrap">+ Create QR</a>
 </div>
 
+<% if (typeof success !== 'undefined' && success) { %>
+<div class="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-4 text-sm" data-flash><%= success %></div>
+<% } %>
+<% if (typeof error !== 'undefined' && error) { %>
+<div class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4 text-sm" data-flash><%= error %></div>
+<% } %>
+
 <div id="summary-cards" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
   <div class="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg shadow-sm border dark:border-gray-700"><p class="text-gray-500 dark:text-gray-400 text-xs uppercase">Total</p><p class="text-xl sm:text-2xl font-bold dark:text-white" id="total-qrs">-</p></div>
   <div class="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg shadow-sm border dark:border-gray-700"><p class="text-gray-500 dark:text-gray-400 text-xs uppercase">Active</p><p class="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400" id="active-qrs">-</p></div>
   <div class="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg shadow-sm border dark:border-gray-700"><p class="text-gray-500 dark:text-gray-400 text-xs uppercase">Scans</p><p class="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400" id="total-scans">-</p></div>
-  <div class="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg shadow-sm border dark:border-gray-700"><p class="text-gray-500 dark:text-gray-400 text-xs uppercase">Top QR</p><p class="text-base sm:text-lg font-bold truncate dark:text-white" id="top-qr">-</p></div>
+  <div class="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg shadow-sm border dark:border-gray-700"><p class="text-gray-500 dark:text-gray-400 text-xs uppercase">Unread</p><p class="text-xl sm:text-2xl font-bold text-orange-500 dark:text-orange-400" id="unread-msg">-</p></div>
 </div>
 
 <% if (qrs.length === 0) { %>
@@ -21,86 +28,153 @@
   <a href="/create" class="btn-scale bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 font-medium inline-block">Create your first QR code</a>
 </div>
 <% } else { %>
-<div class="mb-4">
-  <input type="text" id="search-input" placeholder="Search QR codes..." class="w-full sm:w-72 px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" oninput="filterTable(this.value)">
-</div>
-<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden fade-in">
-  <div class="overflow-x-auto">
-    <table class="w-full text-sm" id="qr-table">
-      <thead class="bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 uppercase text-xs">
-        <tr>
-          <th class="text-left px-3 sm:px-4 py-3">Title</th>
-          <th class="text-left px-3 sm:px-4 py-3 hidden sm:table-cell">Type</th>
-          <th class="text-left px-3 sm:px-4 py-3 hidden md:table-cell">Content</th>
-          <th class="text-center px-3 sm:px-4 py-3">Scans</th>
-          <th class="text-center px-3 sm:px-4 py-3 hidden sm:table-cell">Status</th>
-          <th class="text-right px-3 sm:px-4 py-3">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y dark:divide-gray-700">
-        <% qrs.forEach(qr => { %>
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 qr-row">
-          <td class="px-3 sm:px-4 py-3 font-medium dark:text-white qr-title"><%= qr.title || 'Untitled' %></td>
-          <td class="px-3 sm:px-4 py-3 hidden sm:table-cell"><span class="px-2 py-0.5 rounded text-xs <%= qr.type === 'dynamic' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' %>"><%= qr.type %></span></td>
-          <td class="px-3 sm:px-4 py-3 text-gray-500 dark:text-gray-400 truncate max-w-[120px] sm:max-w-[200px] hidden md:table-cell qr-content"><%= qr.content_type %>: <%= qr.target_url || qr.file_name || (qr.text_data ? qr.text_data.substring(0, 30) : '-') %></td>
-          <td class="px-3 sm:px-4 py-3 text-center font-mono dark:text-white qr-scans"><%= qr.scan_count %></td>
-          <td class="px-3 sm:px-4 py-3 text-center hidden sm:table-cell">
-            <% if (!qr.is_active) { %><span class="text-red-500 dark:text-red-400 text-xs">Inactive</span>
-            <% } else if (qr.expires_at && new Date(qr.expires_at) < new Date()) { %><span class="text-orange-500 dark:text-orange-400 text-xs">Expired</span>
-            <% } else if (qr.scan_limit && qr.scan_count >= qr.scan_limit) { %><span class="text-orange-500 dark:text-orange-400 text-xs">Limit</span>
-            <% } else { %><span class="text-green-500 dark:text-green-400 text-xs">Active</span><% } %>
-          </td>
-          <td class="px-3 sm:px-4 py-3 text-right space-x-2 text-xs">
-            <a href="/edit/<%= qr.id %>" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium">Edit</a>
-            <a href="/analytics/<%= qr.id %>" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium">Stats</a>
-            <span class="msg-badge-<%= qr.id %> text-gray-400"></span>
-            <form method="POST" action="/delete/<%= qr.id %>" class="inline" onsubmit="return confirm('Delete this QR code?')">
-              <button class="text-red-500 dark:text-red-400 hover:text-red-700 font-medium">Delete</button>
-            </form>
-          </td>
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
+<form id="bulk-form" method="POST" action="/delete-bulk">
+  <input type="hidden" name="_csrf" value="<%= _csrf %>">
+  <div class="mb-4 flex flex-col sm:flex-row gap-2">
+    <input type="text" id="search-input" placeholder="Search by title, content, or tag…" class="flex-1 sm:max-w-xs px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" oninput="filterTable(this.value)">
+    <select id="filter-type" class="px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 dark:text-white text-sm" onchange="filterTable(document.getElementById('search-input').value)">
+      <option value="">All types</option>
+      <option value="dynamic">Dynamic</option>
+      <option value="static">Static</option>
+    </select>
+    <select id="filter-status" class="px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 dark:text-white text-sm" onchange="filterTable(document.getElementById('search-input').value)">
+      <option value="">All status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+    <div class="flex-1"></div>
+    <button type="submit" id="bulk-delete" class="hidden btn-scale bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-medium text-sm" onclick="return confirm('Delete selected QR codes? This cannot be undone.')">Delete Selected</button>
   </div>
-  <div class="bg-gray-50 dark:bg-gray-900 px-3 sm:px-4 py-2 text-xs text-gray-400 dark:text-gray-500 flex justify-between">
-    <span id="row-count"><%= qrs.length %> QR codes</span>
-    <span>Page 1 of 1</span>
+
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden fade-in">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm" id="qr-table">
+        <thead class="bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400 uppercase text-xs">
+          <tr>
+            <th class="px-3 sm:px-4 py-3 w-8"><input type="checkbox" id="select-all" onchange="toggleSelectAll(this.checked)" aria-label="Select all"></th>
+            <th class="text-left px-3 sm:px-4 py-3">Title</th>
+            <th class="text-left px-3 sm:px-4 py-3 hidden sm:table-cell">Type</th>
+            <th class="text-left px-3 sm:px-4 py-3 hidden md:table-cell">Content</th>
+            <th class="text-center px-3 sm:px-4 py-3">Scans</th>
+            <th class="text-center px-3 sm:px-4 py-3 hidden sm:table-cell">Status</th>
+            <th class="text-right px-3 sm:px-4 py-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y dark:divide-gray-700">
+          <% qrs.forEach(qr => { %>
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 qr-row" data-type="<%= qr.type %>" data-status="<%= qr.is_active ? 'active' : 'inactive' %>">
+            <td class="px-3 sm:px-4 py-3"><input type="checkbox" name="ids" value="<%= qr.id %>" class="row-check" onchange="updateBulkButton()" aria-label="Select <%= qr.title %>"></td>
+            <td class="px-3 sm:px-4 py-3 font-medium dark:text-white qr-title">
+              <a href="/q/<%= qr.id %>" target="_blank" class="hover:text-indigo-600 dark:hover:text-indigo-400"><%= qr.title || 'Untitled' %></a>
+              <% if (qr.tags) { %>
+                <div class="flex flex-wrap gap-1 mt-1">
+                  <% qr.tags.split(',').slice(0,3).forEach(tag => { %>
+                    <span class="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded"><%= tag.trim() %></span>
+                  <% }); %>
+                </div>
+              <% } %>
+            </td>
+            <td class="px-3 sm:px-4 py-3 hidden sm:table-cell"><span class="px-2 py-0.5 rounded text-xs <%= qr.type === 'dynamic' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' %>"><%= qr.type %></span></td>
+            <td class="px-3 sm:px-4 py-3 text-gray-500 dark:text-gray-400 truncate max-w-[120px] sm:max-w-[200px] hidden md:table-cell qr-content">
+              <span class="inline-block px-1.5 py-0.5 rounded text-[10px] mr-1 <%= qr.content_type === 'file' ? 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300' : qr.content_type === 'link' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' %>"><%= qr.content_type %></span>
+              <%= qr.target_url || qr.file_name || (qr.text_data ? qr.text_data.substring(0, 30) : (qr.wifi_ssid ? '📶 ' + qr.wifi_ssid : (qr.event_title ? '📅 ' + qr.event_title : '-'))) %>
+            </td>
+            <td class="px-3 sm:px-4 py-3 text-center font-mono dark:text-white qr-scans">
+              <%= qr.scan_count %>
+              <% if (qr.scan_limit) { %><span class="text-xs text-gray-400">/ <%= qr.scan_limit %></span><% } %>
+            </td>
+            <td class="px-3 sm:px-4 py-3 text-center hidden sm:table-cell">
+              <% if (!qr.is_active) { %><span class="text-red-500 dark:text-red-400 text-xs">Inactive</span>
+              <% } else if (qr.expires_at && new Date(qr.expires_at) < new Date()) { %><span class="text-orange-500 dark:text-orange-400 text-xs">Expired</span>
+              <% } else if (qr.scan_limit && qr.scan_count >= qr.scan_limit) { %><span class="text-orange-500 dark:text-orange-400 text-xs">Limit</span>
+              <% } else { %><span class="text-green-500 dark:text-green-400 text-xs">● Active</span><% } %>
+              <% if (qr.unread_count > 0) { %><div class="text-xs text-orange-500 mt-1">💬 <%= qr.unread_count %></div><% } %>
+            </td>
+            <td class="px-3 sm:px-4 py-3 text-right space-x-1 text-xs whitespace-nowrap">
+              <button type="button" onclick="copyLink('<%= qr.id %>')" class="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium" title="Copy link">🔗</button>
+              <a href="/qr-image-public/<%= qr.id %>" target="_blank" class="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400" title="View QR">🖼</a>
+              <a href="/edit/<%= qr.id %>" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium">Edit</a>
+              <a href="/analytics/<%= qr.id %>" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium">Stats</a>
+              <form method="POST" action="/toggle-active/<%= qr.id %>" class="inline">
+                <input type="hidden" name="_csrf" value="<%= _csrf %>">
+                <button class="text-gray-500 dark:text-gray-400 hover:text-gray-700 font-medium" title="<%= qr.is_active ? 'Deactivate' : 'Activate' %>"><%= qr.is_active ? '⏸' : '▶' %></button>
+              </form>
+              <form method="POST" action="/delete/<%= qr.id %>" class="inline" onsubmit="return confirm('Delete this QR code?')">
+                <input type="hidden" name="_csrf" value="<%= _csrf %>">
+                <button class="text-red-500 dark:text-red-400 hover:text-red-700 font-medium">Delete</button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <div class="bg-gray-50 dark:bg-gray-900 px-3 sm:px-4 py-2 text-xs text-gray-400 dark:text-gray-500 flex justify-between">
+      <span id="row-count"><%= qrs.length %> QR codes</span>
+      <span>Showing <span id="visible-count"><%= qrs.length %></span></span>
+    </div>
   </div>
-</div>
+</form>
+<% } %>
+
+<div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
 <script>
 function filterTable(query) {
-  query = query.toLowerCase();
+  query = (query || '').toLowerCase();
+  const typeFilter = document.getElementById('filter-type').value;
+  const statusFilter = document.getElementById('filter-status').value;
   const rows = document.querySelectorAll('.qr-row');
   let visible = 0;
   rows.forEach(function(r) {
-    var match = r.textContent.toLowerCase().indexOf(query) !== -1;
-    r.style.display = match ? '' : 'none';
-    if (match) visible++;
+    const text = r.textContent.toLowerCase();
+    const matchText = !query || text.indexOf(query) !== -1;
+    const matchType = !typeFilter || r.dataset.type === typeFilter;
+    const matchStatus = !statusFilter || r.dataset.status === statusFilter;
+    const show = matchText && matchType && matchStatus;
+    r.style.display = show ? '' : 'none';
+    if (show) visible++;
   });
   document.getElementById('row-count').textContent = visible + ' QR codes';
+  document.getElementById('visible-count').textContent = visible;
 }
-</script>
-<% } %>
+function toggleSelectAll(checked) {
+  document.querySelectorAll('.qr-row').forEach(function(r) {
+    if (r.style.display !== 'none') {
+      const cb = r.querySelector('.row-check');
+      if (cb) cb.checked = checked;
+    }
+  });
+  updateBulkButton();
+}
+function updateBulkButton() {
+  const checked = document.querySelectorAll('.row-check:checked').length;
+  const btn = document.getElementById('bulk-delete');
+  if (btn) {
+    btn.classList.toggle('hidden', checked === 0);
+    btn.textContent = checked > 0 ? 'Delete ' + checked + ' Selected' : 'Delete Selected';
+  }
+}
+function copyLink(id) {
+  const url = window.location.origin + '/q/' + id;
+  navigator.clipboard.writeText(url).then(function() { showToast('Link copied!', 'success'); }).catch(function() { showToast('Copy failed', 'error'); });
+}
+function showToast(message, type) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'px-4 py-2 rounded-lg shadow-lg text-sm font-medium ' + (type === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white');
+  t.textContent = message;
+  c.appendChild(t);
+  setTimeout(function() { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(function() { t.remove(); }, 300); }, 2500);
+}
 
-<script>
+setTimeout(function() { document.querySelectorAll('[data-flash]').forEach(function(el) { el.style.transition = 'opacity 0.3s'; el.style.opacity = '0'; setTimeout(function() { el.remove(); }, 300); }); }, 4000);
+
 fetch('/api/analytics-summary').then(function(r){return r.json()}).then(function(d){
   document.getElementById('total-qrs').textContent = d.totalQrs;
   document.getElementById('active-qrs').textContent = d.activeQrs;
   document.getElementById('total-scans').textContent = d.totalScans;
-  document.getElementById('top-qr').textContent = d.topQr ? d.topQr.title + ' (' + d.topQr.scans + ')' : 'N/A';
+  document.getElementById('unread-msg').textContent = d.unreadMessages || 0;
 });
-
-<% qrs.forEach(qr => { %>
-(function(id){
-  fetch('/api/messages/' + id + '/unread-count').then(function(r){return r.json()}).then(function(d){
-    var el = document.querySelector('.msg-badge-' + id);
-    if (el && d.count > 0) {
-      el.textContent = '💬' + d.count;
-      el.className = 'msg-badge-' + id + ' text-xs font-bold text-indigo-600 dark:text-indigo-400';
-    }
-  });
-})('<%= qr.id %>');
-<% }) %>
 </script>
 <%- include('partials/footer') %>

@@ -1,0 +1,176 @@
+<%- include('partials/header') %>
+<div class="max-w-4xl mx-auto fade-in">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold dark:text-white">Settings</h1>
+    <a href="/dashboard" class="text-indigo-600 dark:text-indigo-400 hover:underline text-sm">← Back to Dashboard</a>
+  </div>
+
+  <% if (typeof success !== 'undefined' && success) { %>
+    <div class="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-4 text-sm" data-flash><%= success %></div>
+  <% } %>
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4 text-sm" data-flash><%= error %></div>
+  <% } %>
+
+  <div class="flex border-b dark:border-gray-700 mb-6 overflow-x-auto" role="tablist">
+    <a href="/settings?tab=profile" class="px-4 py-2 text-sm font-medium border-b-2 <%= tab === 'profile' ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300' %>">Profile</a>
+    <a href="/settings?tab=security" class="px-4 py-2 text-sm font-medium border-b-2 <%= tab === 'security' ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300' %>">Security</a>
+    <a href="/settings?tab=tokens" class="px-4 py-2 text-sm font-medium border-b-2 <%= tab === 'tokens' ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300' %>">API Tokens</a>
+    <a href="/settings?tab=data" class="px-4 py-2 text-sm font-medium border-b-2 <%= tab === 'data' ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300' %>">Data</a>
+  </div>
+
+  <% if (tab === 'profile') { %>
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border dark:border-gray-700 space-y-4">
+    <form method="POST" action="/settings/profile">
+      <input type="hidden" name="_csrf" value="<%= _csrf %>">
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+        <input type="text" name="name" value="<%= user.name || '' %>" maxlength="100" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+        <input type="email" value="<%= user.email %>" disabled class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 dark:text-gray-300">
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">To change email, use the form below</p>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Language</label>
+        <select name="language" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          <option value="en" <%= user.language === 'en' ? 'selected' : '' %>>English</option>
+          <option value="ru" <%= user.language === 'ru' ? 'selected' : '' %>>Русский</option>
+        </select>
+      </div>
+      <div class="mb-4 flex items-center gap-2">
+        <input type="checkbox" name="email_notifications" id="en" <%= user.email_notifications ? 'checked' : '' %> class="rounded border-gray-300 dark:border-gray-600">
+        <label for="en" class="text-sm text-gray-700 dark:text-gray-300">Email me about new messages and scan milestones</label>
+      </div>
+      <button type="submit" class="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 font-medium text-sm btn-scale">Save Profile</button>
+    </form>
+
+    <hr class="border-gray-200 dark:border-gray-700">
+
+    <details class="text-sm">
+      <summary class="cursor-pointer text-indigo-600 dark:text-indigo-400 font-medium">Change email</summary>
+      <form method="POST" action="/settings/email" class="mt-4 space-y-3">
+        <input type="hidden" name="_csrf" value="<%= _csrf %>">
+        <input type="email" name="email" placeholder="new@example.com" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        <input type="password" name="password" placeholder="Current password" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        <button type="submit" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium text-sm">Update Email</button>
+      </form>
+    </details>
+  </div>
+  <% } %>
+
+  <% if (tab === 'security') { %>
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border dark:border-gray-700 space-y-6">
+    <form method="POST" action="/settings/password" class="space-y-3">
+      <h3 class="font-semibold text-gray-700 dark:text-gray-300">Change Password</h3>
+      <input type="hidden" name="_csrf" value="<%= _csrf %>">
+      <input type="password" name="current_password" placeholder="Current password" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+      <input type="password" name="new_password" placeholder="New password (min 8 chars, letters + numbers)" required minlength="8" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+      <button type="submit" class="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 font-medium text-sm btn-scale">Update Password</button>
+    </form>
+
+    <hr class="border-gray-200 dark:border-gray-700">
+
+    <div>
+      <h3 class="font-semibold text-gray-700 dark:text-gray-300">Two-Factor Authentication</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <% if (user.totp_enabled) { %>
+          <span class="text-green-600 dark:text-green-400">✓ Enabled</span> — You'll need a code from your authenticator app to sign in.
+        <% } else { %>
+          Add an extra layer of security with TOTP (Google Authenticator, Authy, etc.)
+        <% } %>
+      </p>
+      <% if (!user.totp_enabled) { %>
+        <form method="POST" action="/settings/2fa/enable" class="mt-3">
+          <input type="hidden" name="_csrf" value="<%= _csrf %>">
+          <button type="submit" class="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 font-medium text-sm btn-scale">Enable 2FA</button>
+        </form>
+      <% } else { %>
+        <details class="mt-3">
+          <summary class="text-sm text-red-500 dark:text-red-400 cursor-pointer">Disable 2FA</summary>
+          <form method="POST" action="/settings/2fa/disable" class="mt-3 space-y-2">
+            <input type="hidden" name="_csrf" value="<%= _csrf %>">
+            <input type="password" name="password" placeholder="Confirm with your password" required class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-medium text-sm">Disable 2FA</button>
+          </form>
+        </details>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+
+  <% if (tab === 'tokens') { %>
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border dark:border-gray-700">
+    <% if (typeof new_token !== 'undefined' && new_token) { %>
+    <div class="bg-amber-50 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 p-4 rounded-lg mb-4">
+      <p class="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">⚠️ Save this token — you won't see it again:</p>
+      <code class="block bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 p-3 rounded font-mono text-sm break-all select-all"><%= new_token %></code>
+      <p class="text-xs text-amber-700 dark:text-amber-400 mt-2">Use: <code class="bg-amber-100 dark:bg-amber-950 px-1 rounded">Authorization: Bearer &lt;token&gt;</code></p>
+    </div>
+    <% } %>
+
+    <form method="POST" action="/settings/tokens" class="flex flex-col sm:flex-row gap-2 mb-6">
+      <input type="hidden" name="_csrf" value="<%= _csrf %>">
+      <input type="text" name="name" placeholder="Token name (e.g. CI/CD, Mobile app)" required maxlength="100" class="flex-1 px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+      <button type="submit" class="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 font-medium text-sm btn-scale whitespace-nowrap">+ New Token</button>
+    </form>
+
+    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Your API Tokens</h3>
+    <% if (tokens.length === 0) { %>
+      <p class="text-sm text-gray-400 dark:text-gray-500 text-center py-6">No tokens yet. Create one to use the REST API.</p>
+    <% } else { %>
+    <table class="w-full text-sm">
+      <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase">
+        <tr><th class="text-left px-2 py-2">Name</th><th class="text-left px-2 py-2">Prefix</th><th class="text-left px-2 py-2">Last Used</th><th class="text-right px-2 py-2">Actions</th></tr>
+      </thead>
+      <tbody class="divide-y dark:divide-gray-700">
+        <% tokens.forEach(t => { %>
+        <tr>
+          <td class="px-2 py-2 dark:text-white"><%= t.name %></td>
+          <td class="px-2 py-2 font-mono text-xs text-gray-500"><%= t.prefix %>…</td>
+          <td class="px-2 py-2 text-xs text-gray-500"><%= t.last_used_at || 'Never' %></td>
+          <td class="px-2 py-2 text-right">
+            <form method="POST" action="/settings/tokens/<%= t.id %>/delete" class="inline" onsubmit="return confirm('Revoke this token?')">
+              <input type="hidden" name="_csrf" value="<%= _csrf %>">
+              <button class="text-red-500 dark:text-red-400 hover:underline text-xs">Revoke</button>
+            </form>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+    <% } %>
+
+    <hr class="border-gray-200 dark:border-gray-700 my-6">
+    <details>
+      <summary class="text-sm text-indigo-600 dark:text-indigo-400 cursor-pointer font-medium">API Documentation</summary>
+      <pre class="mt-3 bg-gray-50 dark:bg-gray-900 p-4 rounded text-xs overflow-x-auto dark:text-gray-300"><code>GET    /api/v1/qr           — list your QR codes
+GET    /api/v1/qr/:id       — get specific QR
+POST   /api/v1/qr           — create QR (JSON body)
+DELETE /api/v1/qr/:id       — delete QR
+GET    /api/v1/analytics/:id — get analytics
+GET    /api/v1/messages/:id  — get messages
+
+Auth: Authorization: Bearer &lt;token&gt;</code></pre>
+    </details>
+  </div>
+  <% } %>
+
+  <% if (tab === 'data') { %>
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border dark:border-gray-700 space-y-4">
+    <div>
+      <h3 class="font-semibold text-gray-700 dark:text-gray-300">Export Your Data</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Download all your QR codes, analytics, and messages as JSON.</p>
+      <a href="/settings/export" class="inline-block mt-3 bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 font-medium text-sm btn-scale">Download JSON</a>
+    </div>
+    <hr class="border-gray-200 dark:border-gray-700">
+    <div>
+      <h3 class="font-semibold text-red-600 dark:text-red-400">Danger Zone</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Account deletion is permanent and cannot be undone.</p>
+      <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">Contact support@armada.com to delete your account.</p>
+    </div>
+  </div>
+  <% } %>
+</div>
+<%- include('partials/footer') %>

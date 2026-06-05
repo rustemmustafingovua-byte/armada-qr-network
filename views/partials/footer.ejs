@@ -1,20 +1,20 @@
 </main>
+<noscript><div class="bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 text-center p-3 text-sm">JavaScript is disabled — some features (live preview, copy buttons) won't work.</div></noscript>
 <script>
 (function(){
   var csrf = window.__csrf || '';
   document.querySelectorAll('form[method="POST"]').forEach(function(f) {
     if (!f.querySelector('input[name="_csrf"]')) {
       var inp = document.createElement('input');
-      inp.type = 'hidden'; inp.name = '_csrf';
-      inp.value = csrf;
+      inp.type = 'hidden'; inp.name = '_csrf'; inp.value = csrf;
       f.prepend(inp);
     }
   });
-  // Lazy-load Chart.js if canvas found (saves ~100KB on dashboard pages)
-  if (document.querySelector('canvas')) {
+  if (document.querySelector('canvas') && !window.Chart) {
     var s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+    s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
     s.defer = true;
+    s.crossOrigin = 'anonymous';
     document.head.appendChild(s);
   }
 })();

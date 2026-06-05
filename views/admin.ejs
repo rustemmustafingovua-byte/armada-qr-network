@@ -1,42 +1,33 @@
 <%- include('partials/header') %>
 <h1 class="text-2xl font-bold mb-6 dark:text-white">Admin Panel</h1>
 
-<div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700 mb-6 fade-in" id="server-info">
-  <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Server Connection</h3>
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm" id="server-urls">
-    <div class="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg">
-      <p class="text-xs text-gray-400 uppercase">Local</p>
-      <p class="font-mono text-xs break-all dark:text-gray-300" id="url-local">loading...</p>
-    </div>
-    <div class="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg">
-      <p class="text-xs text-gray-400 uppercase">Network (LAN)</p>
-      <p class="font-mono text-xs break-all dark:text-gray-300" id="url-network">loading...</p>
-    </div>
-    <div class="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg">
-      <p class="text-xs text-gray-400 uppercase">Public</p>
-      <p class="font-mono text-xs break-all text-green-600" id="url-public">
-        <span id="public-status">checking...</span>
-      </p>
-    </div>
-  </div>
-</div>
-
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+<div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
   <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700"><p class="text-gray-500 dark:text-gray-400 text-xs uppercase">Users</p><p class="text-2xl font-bold dark:text-white"><%= totalUsers %></p></div>
   <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700"><p class="text-gray-500 dark:text-gray-400 text-xs uppercase">QR Codes</p><p class="text-2xl font-bold dark:text-white"><%= totalQrs %></p></div>
   <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700"><p class="text-gray-500 dark:text-gray-400 text-xs uppercase">Total Scans</p><p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400"><%= totalScans %></p></div>
-  <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700"><p class="text-gray-500 dark:text-gray-400 text-xs uppercase">Scans / 24h</p><p class="text-2xl font-bold dark:text-white"><%= activeScans %></p></div>
+  <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700"><p class="text-gray-500 dark:text-gray-400 text-xs uppercase">Files</p><p class="text-2xl font-bold dark:text-white"><%= totalFiles %></p></div>
+  <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700"><p class="text-gray-500 dark:text-gray-400 text-xs uppercase">Messages</p><p class="text-2xl font-bold dark:text-white"><%= totalMessages %></p></div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
   <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
-    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Scans (Last 14 Days)</h3>
+    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Scans (Last 30 Days)</h3>
     <canvas id="adminScansChart" height="150"></canvas>
   </div>
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
-    <div class="px-4 py-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900"><h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400">Users</h3></div>
+  <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
+    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Active Scans (24h)</h3>
+    <p class="text-4xl font-bold text-green-600 dark:text-green-400"><%= activeScans %></p>
+  </div>
+</div>
+
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden mb-6">
+  <div class="px-4 py-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex justify-between items-center">
+    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400">Users</h3>
+    <a href="/admin/audit" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">View Audit Log →</a>
+  </div>
+  <div class="overflow-x-auto">
     <table class="w-full text-sm">
-      <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase"><tr><th class="text-left px-4 py-2">Name</th><th class="text-left px-4 py-2">Email</th><th class="text-center px-4 py-2">Role</th><th class="text-right px-4 py-2">Actions</th></tr></thead>
+      <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase"><tr><th class="text-left px-4 py-2">Name</th><th class="text-left px-4 py-2">Email</th><th class="text-center px-4 py-2">Role</th><th class="text-center px-4 py-2">2FA</th><th class="text-right px-4 py-2">Actions</th></tr></thead>
       <tbody class="divide-y dark:divide-gray-700">
         <% users.forEach(u => { %>
         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -45,7 +36,8 @@
           <td class="px-4 py-2 text-center">
             <span class="px-2 py-0.5 rounded text-xs <%= u.role === 'admin' ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' %>"><%= u.role %></span>
           </td>
-          <td class="px-4 py-2 text-right space-x-1">
+          <td class="px-4 py-2 text-center text-xs"><%= u.totp_enabled ? '✓' : '-' %></td>
+          <td class="px-4 py-2 text-right space-x-1 whitespace-nowrap">
             <form method="POST" action="/admin/user/<%= u.id %>/toggle-admin" class="inline">
               <input type="hidden" name="_csrf" value="<%= _csrf %>">
               <button class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"><%= u.role === 'admin' ? 'Demote' : 'Make Admin' %></button>
@@ -66,51 +58,46 @@
 
 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
   <div class="px-4 py-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex justify-between items-center">
-    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400">All QR Codes (Last 50)</h3>
+    <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400">All QR Codes (Last 100)</h3>
   </div>
-  <table class="w-full text-sm">
-    <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase">
-      <tr><th class="text-left px-4 py-2">Title</th><th class="text-left px-4 py-2">Owner</th><th class="text-center px-4 py-2">Type</th><th class="text-center px-4 py-2">Scans</th><th class="text-center px-4 py-2">Status</th><th class="text-right px-4 py-2"></th></tr>
-    </thead>
-    <tbody class="divide-y dark:divide-gray-700">
-      <% qrs.forEach(q => { %>
-      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-        <td class="px-4 py-2 dark:text-white"><%= q.title || 'Untitled' %></td>
-        <td class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400"><%= q.owner_email %></td>
-        <td class="px-4 py-2 text-center"><span class="px-2 py-0.5 rounded text-xs <%= q.type === 'dynamic' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' %>"><%= q.type %></span></td>
-        <td class="px-4 py-2 text-center font-mono dark:text-white"><%= q.scan_count %></td>
-        <td class="px-4 py-2 text-center text-xs dark:text-gray-300"><%= q.is_active ? 'Active' : 'Inactive' %></td>
-        <td class="px-4 py-2 text-right">
-          <form method="POST" action="/admin/qr/<%= q.id %>/delete" class="inline" onsubmit="return confirm('Delete?')">
-            <input type="hidden" name="_csrf" value="<%= _csrf %>">
-            <button class="text-xs text-red-500 dark:text-red-400 hover:underline">Delete</button>
-          </form>
-        </td>
-      </tr>
-      <% }) %>
-    </tbody>
-  </table>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase">
+        <tr><th class="text-left px-4 py-2">Title</th><th class="text-left px-4 py-2">Owner</th><th class="text-center px-4 py-2">Type</th><th class="text-center px-4 py-2">Scans</th><th class="text-center px-4 py-2">Status</th><th class="text-right px-4 py-2"></th></tr>
+      </thead>
+      <tbody class="divide-y dark:divide-gray-700">
+        <% qrs.forEach(q => { %>
+        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+          <td class="px-4 py-2 dark:text-white"><%= q.title || 'Untitled' %></td>
+          <td class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400"><%= q.owner_email %></td>
+          <td class="px-4 py-2 text-center"><span class="px-2 py-0.5 rounded text-xs <%= q.type === 'dynamic' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' %>"><%= q.type %></span></td>
+          <td class="px-4 py-2 text-center font-mono dark:text-white"><%= q.scan_count %></td>
+          <td class="px-4 py-2 text-center text-xs dark:text-gray-300"><%= q.is_active ? '●' : '○' %></td>
+          <td class="px-4 py-2 text-right">
+            <form method="POST" action="/admin/qr/<%= q.id %>/delete" class="inline" onsubmit="return confirm('Delete?')">
+              <input type="hidden" name="_csrf" value="<%= _csrf %>">
+              <button class="text-xs text-red-500 dark:text-red-400 hover:underline">Delete</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <script>
-fetch('/api/server-info').then(function(r){return r.json()}).then(function(info){
-  document.getElementById('url-local').textContent = info.localUrl;
-  document.getElementById('url-network').textContent = info.networkUrl;
-  if (info.publicUrl) {
-    document.getElementById('url-public').innerHTML = '<a href="'+info.publicUrl+'" target="_blank" class="text-green-600 dark:text-green-400 hover:underline">'+info.publicUrl+'</a>';
-  } else {
-    document.getElementById('public-status').textContent = 'Not available';
-  }
-});
-
-var sd = JSON.parse('<%- scansByDay %>');
-new Chart(document.getElementById('adminScansChart'), {
+function initChart(id, config) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  function go() { if (window.Chart) new Chart(el, config); else setTimeout(go, 100); }
+  go();
+}
+var sd = <%- scansByDay %>;
+initChart('adminScansChart', {
   type: 'line',
-  data: {
-    labels: sd.map(function(d){return d.date}),
-    datasets: [{label:'Scans', data: sd.map(function(d){return d.count}), borderColor:'#7c3aed', fill:true, backgroundColor:'rgba(124,58,237,0.1)', tension:0.3}]
-  },
-  options: {responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{stepSize:1}}}}
+  data: { labels: sd.map(function(d){return d.date}), datasets: [{label:'Scans', data: sd.map(function(d){return d.count}), borderColor:'#7c3aed', fill:true, backgroundColor:'rgba(124,58,237,0.1)', tension:0.3}] },
+  options: {responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{stepSize:1, precision:0}}}}
 });
 </script>
 <%- include('partials/footer') %>

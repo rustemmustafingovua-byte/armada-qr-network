@@ -1,9 +1,12 @@
 node_modules/
 .env
+.env.local
 db/*.db
+db/*.db-shm
+db/*.db-wal
 public/uploads/*
 !public/uploads/.gitkeep
 *.log
-db/*.db*
-db/*-shm
-db/*-wal
+.DS_Store
+coverage/
+.nyc_output/
