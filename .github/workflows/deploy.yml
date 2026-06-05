@@ -14,6 +14,6 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Deploy
-        run: railway up --service armada-qr-network
+        run: railway up --service armada-qr-network --project ee29ae49-95b7-4519-bec9-037e7c1f96f9 --environment production
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
