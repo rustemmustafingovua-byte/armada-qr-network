@@ -156,7 +156,8 @@ function csrfCheck(req, res, next) {
   next();
 }
 app.use((req, res, next) => {
-  if (req.path === '/create' || req.path.startsWith('/edit/')) return next();
+  const publicPaths = ['/create', '/edit/', '/api/verify-code/', '/api/messages/', '/api/verify'];
+  if (publicPaths.some(p => req.path.startsWith(p))) return next();
   csrfCheck(req, res, next);
 });
 
