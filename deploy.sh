@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# deploy.sh — один раз настрой, потом просто: ./deploy.sh
+# deploy.sh — deploy to Railway (run locally after one-time auth)
 
 set -euo pipefail
 
@@ -8,16 +8,21 @@ JWT_SECRET="${JWT_SECRET:-$(openssl rand -hex 32)}"
 PUBLIC_URL="${PUBLIC_URL:-https://armada-qr-network-production-5f09.up.railway.app}"
 
 if [[ -z "$RAILWAY_TOKEN" ]]; then
-  echo "❌ RAILWAY_TOKEN not set. Get it: railway login && railway token"
-  echo "   export RAILWAY_TOKEN=xxx && ./deploy.sh"
+  echo "❌ RAILWAY_TOKEN not set"
+  echo "   Get token: railway login --browserless (then copy token from ~/.config/railway)"
+  echo "   Or use GitHub Actions (see .github/workflows/deploy.yml)"
   exit 1
 fi
 
 echo "🚀 Deploying to Railway..."
 npm install -g @railway/cli 2>/dev/null || true
 
-echo "$RAILWAY_TOKEN" | railway login --token-stdin
+# Use token for authentication (if supported)
+# Note: Railway CLI uses OAuth, not token. This script assumes you've run:
+#   railway login --browserless
+# once locally to authenticate the CLI.
 
+echo "🔧 Setting variables..."
 railway variables set JWT_SECRET="$JWT_SECRET"
 railway variables set NODE_ENV=production
 railway variables set PUBLIC_URL="$PUBLIC_URL"
