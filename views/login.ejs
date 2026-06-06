@@ -1,33 +1,99 @@
 <%- include('partials/header') %>
-<div class="max-w-md mx-auto mt-16 fade-in">
-  <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md dark:shadow-2xl">
-    <div class="text-center mb-6">
-      <div class="text-4xl mb-2">📱</div>
-      <h1 class="text-2xl font-bold dark:text-white">Armada QR Network</h1>
-      <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Sign in to your account</p>
+<div class="auth-split">
+  <!-- Brand Panel -->
+  <div class="auth-brand-panel gradient-primary relative hidden lg:flex gradient-mesh-animated">
+    <div class="relative z-10 text-center max-w-md">
+      <div class="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-8 shadow-lg">
+        <i data-lucide="qr-code" class="w-10 h-10 text-white"></i>
+      </div>
+      <h2 class="text-3xl font-bold text-white mb-4 tracking-tight">Armada QR Network</h2>
+      <p class="text-white/80 text-lg leading-relaxed">Enterprise-grade QR code platform with analytics, 2FA, API access, and real-time tracking.</p>
+      <div class="flex items-center justify-center gap-6 mt-10">
+        <div class="flex items-center gap-2 text-white/70 text-sm">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          <span>Analytics</span>
+        </div>
+        <div class="flex items-center gap-2 text-white/70 text-sm">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span>2FA Security</span>
+        </div>
+        <div class="flex items-center gap-2 text-white/70 text-sm">
+          <i data-lucide="code-2" class="w-4 h-4"></i>
+          <span>REST API</span>
+        </div>
+      </div>
     </div>
-    <% if (typeof error !== 'undefined' && error) { %>
-      <div class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4 text-sm"><%= error %></div>
-    <% } %>
-    <form method="POST" action="/login" onsubmit="document.getElementById('login-btn').disabled=true;document.getElementById('login-btn').innerHTML='<span class=\\'spinner\\'></span>'">
-      <input type="hidden" name="_csrf" value="<%= _csrf %>">
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-        <input type="email" name="email" required value="<%= typeof email !== 'undefined' ? email : '' %>" autocomplete="email" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+    <div class="absolute bottom-8 left-0 right-0 text-center">
+      <p class="text-white/40 text-xs">&copy; 2026 Armada QR Network</p>
+    </div>
+  </div>
+
+  <!-- Form Panel -->
+  <div class="flex items-center justify-center px-4 py-12 sm:px-8 bg-white dark:bg-slate-950">
+    <div class="w-full max-w-md fade-in">
+      <!-- Mobile Logo -->
+      <div class="lg:hidden text-center mb-8">
+        <div class="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center mx-auto mb-4 shadow-glow">
+          <i data-lucide="qr-code" class="w-7 h-7 text-white"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Armada<span class="text-brand-500">QR</span></h1>
       </div>
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-        <input type="password" name="password" required autocomplete="current-password" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+      <div class="bg-slate-50 dark:bg-slate-900 rounded-2xl p-8 shadow-card border border-slate-200/60 dark:border-slate-800/60">
+        <div class="mb-6">
+          <h1 class="text-xl font-bold text-slate-900 dark:text-white">Welcome back</h1>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Sign in to your account</p>
+        </div>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+          <div class="flex items-center gap-2 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl mb-5 text-sm slide-down">
+            <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+            <span><%= error %></span>
+          </div>
+        <% } %>
+
+        <form method="POST" action="/login" onsubmit="document.getElementById('login-btn').disabled=true;document.getElementById('login-btn').innerHTML='<span class=\\'spinner\\'></span>'">
+          <input type="hidden" name="_csrf" value="<%= _csrf %>">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i data-lucide="mail" class="w-4 h-4 text-slate-400"></i>
+              </div>
+              <input type="email" name="email" required value="<%= typeof email !== 'undefined' ? email : '' %>" autocomplete="email" placeholder="you@example.com" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i data-lucide="lock" class="w-4 h-4 text-slate-400"></i>
+              </div>
+              <input type="password" name="password" required autocomplete="current-password" placeholder="Enter your password" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+            </div>
+          </div>
+          <% if (typeof requireTotp !== 'undefined' && requireTotp) { %>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">2FA Code</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i data-lucide="key-round" class="w-4 h-4 text-slate-400"></i>
+              </div>
+              <input type="text" name="totp" pattern="[0-9]{6}" inputmode="numeric" maxlength="6" required autofocus placeholder="123456" class="w-full pl-10 pr-4 py-2.5 text-center text-lg font-mono tracking-[0.3em] border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+            </div>
+          </div>
+          <% } %>
+          <button id="login-btn" type="submit" class="w-full bg-gradient-to-r from-brand-600 to-violet-600 text-white py-2.5 rounded-xl hover:from-brand-700 hover:to-violet-700 font-semibold text-sm transition-all btn-scale shadow-glow hover:shadow-glow-lg mt-2">
+            Sign In
+          </button>
+        </form>
       </div>
-      <% if (typeof requireTotp !== 'undefined' && requireTotp) { %>
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">2FA Code</label>
-        <input type="text" name="totp" pattern="[0-9]{6}" inputmode="numeric" maxlength="6" required autofocus placeholder="123456" class="w-full px-3 py-2 text-center text-xl font-mono border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-      </div>
-      <% } %>
-      <button id="login-btn" type="submit" class="w-full bg-indigo-600 text-white py-2.5 rounded-lg hover:bg-indigo-700 font-medium transition-colors">Sign In</button>
-    </form>
-    <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">Don't have an account? <a href="/register" class="text-indigo-600 dark:text-indigo-400 hover:underline">Register</a></p>
+
+      <p class="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">
+        Don't have an account?
+        <a href="/register" class="font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors">Create account</a>
+      </p>
+    </div>
   </div>
 </div>
 <%- include('partials/footer') %>
