@@ -39,7 +39,8 @@ router.get('/settings', requireAuth, asyncWrap(async (req, res) => {
     new_token: req.query.new_token,
     error: errorMap[req.query.error] || (req.query.error ? 'Error: ' + req.query.error : null),
     success: successMap[req.query.success] || (req.query.success ? 'Saved.' : null),
-    tab: req.query.tab || 'profile'
+    tab: req.query.tab || 'profile',
+    activePage: 'settings',
   });
 }));
 

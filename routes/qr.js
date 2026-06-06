@@ -131,11 +131,11 @@ router.get('/dashboard', requireAuth, asyncWrap(async (req, res) => {
     deleted: 'QR code deleted.',
     bulk_deleted: 'Selected QR codes deleted.'
   };
-  res.render('dashboard', { qrs, user: req.user, success: messages[req.query.success] || null, error: req.query.error || null });
+  res.render('dashboard', { qrs, user: req.user, success: messages[req.query.success] || null, error: req.query.error || null, activePage: 'dashboard' });
 }));
 
 router.get('/create', requireAuth, (req, res) => {
-  res.render('create', { user: req.user, error: null, form: {} });
+  res.render('create', { user: req.user, error: null, form: {}, activePage: 'create' });
 });
 
 router.post('/create', requireAuth, (req, res, next) => {
@@ -315,7 +315,7 @@ router.get('/edit/:id', requireAuth, asyncWrap(async (req, res) => {
   if (!/^[a-f0-9]{12}$/i.test(req.params.id)) return res.redirect('/dashboard');
   const qr = await q.get('SELECT * FROM qr_codes WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
   if (!qr) return res.redirect('/dashboard');
-  res.render('edit', { qr, user: req.user, error: null, success: null });
+  res.render('edit', { qr, user: req.user, error: null, success: null, activePage: 'create' });
 }));
 
 router.post('/edit/:id', requireAuth, (req, res, next) => {

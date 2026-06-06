@@ -37,6 +37,7 @@ router.get('/admin', requireAuth, requireAdmin, asyncWrap(async (req, res) => {
     activeScans: parseInt(activeScansRow?.count || 0),
     scansByDay: JSON.stringify(scansByDay),
     user: req.user,
+    activePage: 'admin',
   });
 }));
 

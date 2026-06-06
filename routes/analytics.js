@@ -58,7 +58,8 @@ router.get('/analytics/:id', requireAuth, asyncWrap(async (req, res) => {
     countryStats,
     hourlyStats: JSON.stringify(hourlyStats),
     refererStats: JSON.stringify(refererStats),
-    recentScans
+    recentScans,
+    activePage: 'dashboard',
   });
 }));
 
