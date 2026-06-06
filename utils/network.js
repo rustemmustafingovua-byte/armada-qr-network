@@ -61,6 +61,12 @@ function getPublicUrl(req) {
   if (process.env.FLY_APP_NAME) {
     return `https://${process.env.FLY_APP_NAME}.fly.dev`;
   }
+  if (host.includes('trycloudflare.com') || host.includes('cfargotunnel.com')) {
+    return `https://${host}`;
+  }
+  if (host.includes('.workers.dev') || host.includes('.pages.dev')) {
+    return `https://${host}`;
+  }
 
   const isLocal = host.startsWith('localhost') || host.startsWith('127.0.0.1') || host === '::1';
   if (isLocal) {

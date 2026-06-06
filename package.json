@@ -7,7 +7,12 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node --test tests/",
-    "test:e2e": "node tests/e2e.js"
+    "test:e2e": "node tests/e2e.js",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop armada-qr",
+    "pm2:logs": "pm2 logs armada-qr",
+    "pm2:restart": "pm2 restart armada-qr",
+    "backup": "./backup-db.sh"
   },
   "engines": {
     "node": ">=20"

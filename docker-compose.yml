@@ -18,6 +18,7 @@ services:
     volumes:
       - uploads:/app/public/uploads
       - dbdata:/app/db
+      - app-logs:/app/logs
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/health"]
@@ -25,7 +26,42 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backup:
+    image: alpine:3.19
+    volumes:
+      - dbdata:/data:ro
+      - backups:/backups
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        apk add --no-cache gzip
+        while true; do
+          echo "$$(date) Starting backup..."
+          cp /data/qrmaster.db /backups/qrmaster_$$(date +%Y%m%d_%H%M%S).db
+          gzip /backups/qrmaster_*.db
+          find /backups -name "*.db.gz" -mtime +30 -delete
+          echo "$$(date) Backup complete. Waiting 24h..."
+          sleep 86400
+        done
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
 
 volumes:
   uploads:
   dbdata:
+  backups:
+  app-logs:
