@@ -425,6 +425,7 @@ async function migrateV2() {
     "ALTER TABLE file_uploads ADD COLUMN IF NOT EXISTS download_count INTEGER DEFAULT 0",
     "ALTER TABLE analytics ADD COLUMN IF NOT EXISTS region TEXT DEFAULT ''",
     "ALTER TABLE analytics ADD COLUMN IF NOT EXISTS unique_hash TEXT DEFAULT ''",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
   ] : [
     "ALTER TABLE users ADD COLUMN totp_secret TEXT DEFAULT ''",
     "ALTER TABLE users ADD COLUMN totp_enabled INTEGER DEFAULT 0",
@@ -447,6 +448,8 @@ async function migrateV2() {
     "ALTER TABLE file_uploads ADD COLUMN download_count INTEGER DEFAULT 0",
     "ALTER TABLE analytics ADD COLUMN region TEXT DEFAULT ''",
     "ALTER TABLE analytics ADD COLUMN unique_hash TEXT DEFAULT ''",
+    "ALTER TABLE users ADD COLUMN updated_at DATETIME",
+    "UPDATE users SET updated_at = created_at WHERE updated_at IS NULL",
     "CREATE INDEX IF NOT EXISTS idx_analytics_unique ON analytics(qr_id, unique_hash)",
     "CREATE INDEX IF NOT EXISTS idx_qr_codes_tags ON qr_codes(tags)",
   ];
