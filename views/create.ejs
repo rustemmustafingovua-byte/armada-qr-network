@@ -1,215 +1,320 @@
 <%- include('partials/header') %>
 <div class="max-w-5xl mx-auto fade-in">
-  <h1 class="text-2xl font-bold mb-6 dark:text-white">Create QR Code</h1>
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Create QR Code</h1>
+      <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Generate a new QR code with custom content and design</p>
+    </div>
+    <a href="/dashboard" class="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400 transition-colors">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+      Back to Dashboard
+    </a>
+  </div>
+
   <% if (typeof error !== 'undefined' && error) { %>
-    <div class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4 text-sm"><%= error %></div>
+    <div class="flex items-center gap-2 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm slide-down">
+      <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+      <span><%= error %></span>
+    </div>
   <% } %>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <form method="POST" action="/create" enctype="multipart/form-data" class="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border dark:border-gray-700 space-y-6" id="create-form" onsubmit="document.getElementById('submit-btn').disabled=true;document.getElementById('submit-btn').innerHTML='<span class=\\'spinner\\'></span> Creating...'">
+    <form method="POST" action="/create" enctype="multipart/form-data" class="lg:col-span-2 space-y-6" id="create-form" onsubmit="document.getElementById('submit-btn').disabled=true;document.getElementById('submit-btn').innerHTML='<span class=\\'spinner\\'></span> Creating...'">
       <input type="hidden" name="_csrf" value="<%= typeof _csrf !== 'undefined' ? _csrf : '' %>">
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title *</label>
-          <input type="text" name="title" required maxlength="200" placeholder="My QR Code" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+      <!-- Basic Info -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-card border border-slate-200/60 dark:border-slate-800/60">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center">
+            <i data-lucide="info" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+          </div>
+          <h2 class="font-semibold text-slate-900 dark:text-white">Basic Info</h2>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
-          <select name="type" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-            <option value="dynamic">Dynamic (editable, with analytics)</option>
-            <option value="static">Static (fixed, no analytics)</option>
-          </select>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Title *</label>
+            <input type="text" name="title" required maxlength="200" placeholder="My QR Code" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Type</label>
+            <select name="type" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all">
+              <option value="dynamic">Dynamic (editable, with analytics)</option>
+              <option value="static">Static (fixed, no analytics)</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Content Type</label>
-        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2" role="radiogroup">
-          <label class="cursor-pointer"><input type="radio" name="content_type_radio" value="link" checked class="peer sr-only" onchange="setContentType('link')"><div class="text-center p-3 border-2 dark:border-gray-600 rounded-lg peer-checked:border-indigo-500 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30 transition-colors"><div class="text-2xl">🔗</div><div class="text-xs mt-1 dark:text-gray-300">URL</div></div></label>
-          <label class="cursor-pointer"><input type="radio" name="content_type_radio" value="file" class="peer sr-only" onchange="setContentType('file')"><div class="text-center p-3 border-2 dark:border-gray-600 rounded-lg peer-checked:border-indigo-500 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30 transition-colors"><div class="text-2xl">📁</div><div class="text-xs mt-1 dark:text-gray-300">File</div></div></label>
-          <label class="cursor-pointer"><input type="radio" name="content_type_radio" value="vcard" class="peer sr-only" onchange="setContentType('vcard')"><div class="text-center p-3 border-2 dark:border-gray-600 rounded-lg peer-checked:border-indigo-500 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30 transition-colors"><div class="text-2xl">👤</div><div class="text-xs mt-1 dark:text-gray-300">vCard</div></div></label>
-          <label class="cursor-pointer"><input type="radio" name="content_type_radio" value="text" class="peer sr-only" onchange="setContentType('text')"><div class="text-center p-3 border-2 dark:border-gray-600 rounded-lg peer-checked:border-indigo-500 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30 transition-colors"><div class="text-2xl">📝</div><div class="text-xs mt-1 dark:text-gray-300">Text</div></div></label>
-          <label class="cursor-pointer"><input type="radio" name="content_type_radio" value="wifi" class="peer sr-only" onchange="setContentType('wifi')"><div class="text-center p-3 border-2 dark:border-gray-600 rounded-lg peer-checked:border-indigo-500 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30 transition-colors"><div class="text-2xl">📶</div><div class="text-xs mt-1 dark:text-gray-300">WiFi</div></div></label>
-          <label class="cursor-pointer"><input type="radio" name="content_type_radio" value="event" class="peer sr-only" onchange="setContentType('event')"><div class="text-center p-3 border-2 dark:border-gray-600 rounded-lg peer-checked:border-indigo-500 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30 transition-colors"><div class="text-2xl">📅</div><div class="text-xs mt-1 dark:text-gray-300">Event</div></div></label>
+      <!-- Content Type -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-card border border-slate-200/60 dark:border-slate-800/60">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center">
+            <i data-lucide="layers" class="w-4 h-4 text-violet-600 dark:text-violet-400"></i>
+          </div>
+          <h2 class="font-semibold text-slate-900 dark:text-white">Content Type</h2>
+        </div>
+        <div class="grid grid-cols-3 sm:grid-cols-6 gap-3" role="radiogroup">
+          <label class="cursor-pointer"><input type="radio" name="content_type_radio" value="link" checked class="peer sr-only" onchange="setContentType('link')"><div class="text-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-xl peer-checked:border-brand-500 peer-checked:bg-brand-50 dark:peer-checked:bg-brand-500/10 dark:peer-checked:border-brand-500 transition-all hover:border-slate-300 dark:hover:border-slate-600"><div class="w-10 h-10 mx-auto rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-2 peer-checked:bg-brand-100 dark:peer-checked:bg-brand-500/20"><i data-lucide="link" class="w-5 h-5 text-slate-500 dark:text-slate-400 peer-checked:text-brand-600"></i></div><div class="text-xs font-medium text-slate-600 dark:text-slate-400">URL</div></div></label>
+          <label class="cursor-pointer"><input type="radio" name="content_type_radio" value="file" class="peer sr-only" onchange="setContentType('file')"><div class="text-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-xl peer-checked:border-brand-500 peer-checked:bg-brand-50 dark:peer-checked:bg-brand-500/10 dark:peer-checked:border-brand-500 transition-all hover:border-slate-300 dark:hover:border-slate-600"><div class="w-10 h-10 mx-auto rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-2"><i data-lucide="folder-open" class="w-5 h-5 text-slate-500 dark:text-slate-400"></i></div><div class="text-xs font-medium text-slate-600 dark:text-slate-400">File</div></div></label>
+          <label class="cursor-pointer"><input type="radio" name="content_type_radio" value="vcard" class="peer sr-only" onchange="setContentType('vcard')"><div class="text-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-xl peer-checked:border-brand-500 peer-checked:bg-brand-50 dark:peer-checked:bg-brand-500/10 dark:peer-checked:border-brand-500 transition-all hover:border-slate-300 dark:hover:border-slate-600"><div class="w-10 h-10 mx-auto rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-2"><i data-lucide="user" class="w-5 h-5 text-slate-500 dark:text-slate-400"></i></div><div class="text-xs font-medium text-slate-600 dark:text-slate-400">vCard</div></div></label>
+          <label class="cursor-pointer"><input type="radio" name="content_type_radio" value="text" class="peer sr-only" onchange="setContentType('text')"><div class="text-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-xl peer-checked:border-brand-500 peer-checked:bg-brand-50 dark:peer-checked:bg-brand-500/10 dark:peer-checked:border-brand-500 transition-all hover:border-slate-300 dark:hover:border-slate-600"><div class="w-10 h-10 mx-auto rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-2"><i data-lucide="file-text" class="w-5 h-5 text-slate-500 dark:text-slate-400"></i></div><div class="text-xs font-medium text-slate-600 dark:text-slate-400">Text</div></div></label>
+          <label class="cursor-pointer"><input type="radio" name="content_type_radio" value="wifi" class="peer sr-only" onchange="setContentType('wifi')"><div class="text-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-xl peer-checked:border-brand-500 peer-checked:bg-brand-50 dark:peer-checked:bg-brand-500/10 dark:peer-checked:border-brand-500 transition-all hover:border-slate-300 dark:hover:border-slate-600"><div class="w-10 h-10 mx-auto rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-2"><i data-lucide="wifi" class="w-5 h-5 text-slate-500 dark:text-slate-400"></i></div><div class="text-xs font-medium text-slate-600 dark:text-slate-400">WiFi</div></div></label>
+          <label class="cursor-pointer"><input type="radio" name="content_type_radio" value="event" class="peer sr-only" onchange="setContentType('event')"><div class="text-center p-4 border-2 border-slate-200 dark:border-slate-700 rounded-xl peer-checked:border-brand-500 peer-checked:bg-brand-50 dark:peer-checked:bg-brand-500/10 dark:peer-checked:border-brand-500 transition-all hover:border-slate-300 dark:hover:border-slate-600"><div class="w-10 h-10 mx-auto rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-2"><i data-lucide="calendar" class="w-5 h-5 text-slate-500 dark:text-slate-400"></i></div><div class="text-xs font-medium text-slate-600 dark:text-slate-400">Event</div></div></label>
         </div>
         <input type="hidden" name="content_type" id="content-type" value="link">
       </div>
 
-      <div id="link-field" class="content-field">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target URL *</label>
-        <input type="url" name="target_url" placeholder="https://example.com" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-      </div>
+      <!-- Content Fields -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-card border border-slate-200/60 dark:border-slate-800/60">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-9 h-9 rounded-xl bg-cyan-50 dark:bg-cyan-500/10 flex items-center justify-center">
+            <i data-lucide="file-input" class="w-4 h-4 text-cyan-600 dark:text-cyan-400"></i>
+          </div>
+          <h2 class="font-semibold text-slate-900 dark:text-white">Content</h2>
+        </div>
 
-      <div id="file-field" class="content-field hidden">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Upload File *</label>
-        <div id="drop-zone" class="border-2 border-dashed dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors">
-          <input type="file" name="file" id="file-input" class="hidden">
-          <div class="text-4xl mb-2">📤</div>
-          <p class="text-sm text-gray-600 dark:text-gray-400"><span class="text-indigo-600 dark:text-indigo-400 font-medium">Click to upload</span> or drag & drop</p>
-          <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Max 200 MB — auto-compressed, any format</p>
-          <p id="file-name" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 mt-2 hidden"></p>
-          <div id="upload-progress" class="hidden mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-            <div id="upload-bar" class="bg-indigo-600 h-2 transition-all duration-200" style="width:0%"></div>
+        <div id="link-field" class="content-field">
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Target URL *</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i data-lucide="globe" class="w-4 h-4 text-slate-400"></i>
+            </div>
+            <input type="url" name="target_url" placeholder="https://example.com" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+          </div>
+        </div>
+
+        <div id="file-field" class="content-field hidden">
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Upload File *</label>
+          <div id="drop-zone" class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-8 text-center cursor-pointer hover:border-brand-400 dark:hover:border-brand-500 hover:bg-brand-50/50 dark:hover:bg-brand-500/5 transition-all">
+            <input type="file" name="file" id="file-input" class="hidden">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center mb-3">
+              <i data-lucide="upload-cloud" class="w-7 h-7 text-brand-500"></i>
+            </div>
+            <p class="text-sm font-medium text-slate-700 dark:text-slate-300"><span class="text-brand-600 dark:text-brand-400">Click to upload</span> or drag & drop</p>
+            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Max 200 MB — auto-compressed, any format</p>
+            <p id="file-name" class="text-sm font-medium text-brand-600 dark:text-brand-400 mt-3 hidden"></p>
+            <div id="upload-progress" class="hidden mt-3 w-full progress-bar overflow-hidden">
+              <div id="upload-bar" class="bg-brand-500 progress-bar-fill" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="vcard-field" class="content-field hidden">
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">vCard Data *</label>
+          <textarea name="vcard_data" rows="6" placeholder="BEGIN:VCARD&#10;VERSION:3.0&#10;FN:John Doe&#10;EMAIL:john@example.com&#10;TEL:+1234567890&#10;ORG:Company&#10;URL:https://example.com&#10;END:VCARD" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white font-mono text-xs focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow"></textarea>
+          <button type="button" onclick="document.getElementById('vcard-builder').classList.toggle('hidden')" class="mt-2 text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 flex items-center gap-1 transition-colors">
+            <i data-lucide="contact" class="w-3.5 h-3.5"></i> Use visual builder
+          </button>
+          <div id="vcard-builder" class="hidden mt-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-2">
+            <input data-vcard="FN" placeholder="Full Name" class="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+            <input data-vcard="ORG" placeholder="Organization" class="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+            <input data-vcard="TITLE" placeholder="Job Title" class="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+            <input data-vcard="EMAIL" placeholder="Email" class="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+            <input data-vcard="TEL" placeholder="Phone" class="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+            <input data-vcard="URL" placeholder="Website" class="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+            <button type="button" onclick="buildVcard()" class="text-xs bg-brand-600 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-brand-700 transition-colors">Generate</button>
+          </div>
+        </div>
+
+        <div id="text-field" class="content-field hidden">
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Text Content *</label>
+          <textarea name="text_data" rows="4" placeholder="Enter any text content..." maxlength="5000" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow"></textarea>
+          <p class="text-xs text-slate-400 dark:text-slate-500 mt-1.5"><span id="text-count">0</span>/5000</p>
+        </div>
+
+        <div id="wifi-field" class="content-field hidden space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Network Name (SSID) *</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="wifi" class="w-4 h-4 text-slate-400"></i></div>
+              <input type="text" name="wifi_ssid" placeholder="MyWiFi" maxlength="100" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="lock" class="w-4 h-4 text-slate-400"></i></div>
+              <input type="text" name="wifi_password" placeholder="password" maxlength="200" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Encryption</label>
+              <select name="wifi_encryption" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all">
+                <option value="WPA">WPA/WPA2</option>
+                <option value="WEP">WEP</option>
+                <option value="nopass">None (open)</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <label class="flex items-center gap-2.5 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                <input type="checkbox" name="wifi_hidden" class="rounded-lg border-slate-300 dark:border-slate-600 text-brand-600 focus:ring-brand-500/30">
+                Hidden network
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div id="event-field" class="content-field hidden space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Event Title *</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="calendar" class="w-4 h-4 text-slate-400"></i></div>
+              <input type="text" name="event_title" placeholder="Team Meeting" maxlength="200" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Location</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i></div>
+              <input type="text" name="event_location" placeholder="Conference Room A" maxlength="300" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Start</label>
+              <input type="datetime-local" name="event_start" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">End</label>
+              <input type="datetime-local" name="event_end" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Description</label>
+            <textarea name="event_description" rows="3" maxlength="2000" placeholder="Meeting agenda and notes..." class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow"></textarea>
           </div>
         </div>
       </div>
 
-      <div id="vcard-field" class="content-field hidden">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">vCard Data *</label>
-        <textarea name="vcard_data" rows="6" placeholder="BEGIN:VCARD&#10;VERSION:3.0&#10;FN:John Doe&#10;EMAIL:john@example.com&#10;TEL:+1234567890&#10;ORG:Company&#10;URL:https://example.com&#10;END:VCARD" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white font-mono text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
-        <button type="button" onclick="document.getElementById('vcard-builder').classList.toggle('hidden')" class="mt-1 text-xs text-indigo-600 dark:text-indigo-400 hover:underline">📇 Use visual builder</button>
-        <div id="vcard-builder" class="hidden mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg space-y-2">
-          <input data-vcard="FN" placeholder="Full Name" class="w-full px-2 py-1 text-sm border dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
-          <input data-vcard="ORG" placeholder="Organization" class="w-full px-2 py-1 text-sm border dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
-          <input data-vcard="TITLE" placeholder="Job Title" class="w-full px-2 py-1 text-sm border dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
-          <input data-vcard="EMAIL" placeholder="Email" class="w-full px-2 py-1 text-sm border dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
-          <input data-vcard="TEL" placeholder="Phone" class="w-full px-2 py-1 text-sm border dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
-          <input data-vcard="URL" placeholder="Website" class="w-full px-2 py-1 text-sm border dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white">
-          <button type="button" onclick="buildVcard()" class="text-xs bg-indigo-600 text-white px-3 py-1 rounded">Generate</button>
+      <!-- Design -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-card border border-slate-200/60 dark:border-slate-800/60">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
+            <i data-lucide="palette" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+          </div>
+          <h2 class="font-semibold text-slate-900 dark:text-white">Design</h2>
         </div>
-      </div>
-
-      <div id="text-field" class="content-field hidden">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Text Content *</label>
-        <textarea name="text_data" rows="4" placeholder="Enter any text content..." maxlength="5000" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
-        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1"><span id="text-count">0</span>/5000</p>
-      </div>
-
-      <div id="wifi-field" class="content-field hidden space-y-3">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Network Name (SSID) *</label>
-          <input type="text" name="wifi_ssid" placeholder="MyWiFi" maxlength="100" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-          <input type="text" name="wifi_password" placeholder="password" maxlength="200" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Encryption</label>
-            <select name="wifi_encryption" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-              <option value="WPA">WPA/WPA2</option>
-              <option value="WEP">WEP</option>
-              <option value="nopass">None (open)</option>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Foreground Color</label>
+            <input type="color" name="fg_color" value="#000000" class="w-full h-11 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Background Color</label>
+            <input type="color" name="bg_color" value="#FFFFFF" class="w-full h-11 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Style</label>
+            <select name="dot_style" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all">
+              <option value="square">Square</option>
+              <option value="rounded">Rounded</option>
+              <option value="circle">Dots</option>
             </select>
           </div>
-          <div class="flex items-end">
-            <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-              <input type="checkbox" name="wifi_hidden" class="rounded border-gray-300 dark:border-gray-600">
-              Hidden network
-            </label>
-          </div>
         </div>
       </div>
 
-      <div id="event-field" class="content-field hidden space-y-3">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Event Title *</label>
-          <input type="text" name="event_title" placeholder="Team Meeting" maxlength="200" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
-          <input type="text" name="event_location" placeholder="Conference Room A" maxlength="300" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start</label>
-            <input type="datetime-local" name="event_start" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+      <!-- Access Control -->
+      <details class="bg-white dark:bg-slate-900 rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-800/60 overflow-hidden group">
+        <summary class="px-6 py-4 flex items-center gap-3 cursor-pointer select-none">
+          <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center">
+            <i data-lucide="shield" class="w-4 h-4 text-amber-600 dark:text-amber-400"></i>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End</label>
-            <input type="datetime-local" name="event_end" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
-          <textarea name="event_description" rows="3" maxlength="2000" placeholder="Meeting agenda and notes..." class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
-        </div>
-      </div>
-
-      <hr class="border-gray-200 dark:border-gray-600">
-      <h3 class="font-semibold text-gray-700 dark:text-gray-300">Design</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Foreground Color</label>
-          <input type="color" name="fg_color" value="#000000" class="w-full h-10 border dark:border-gray-600 rounded-lg cursor-pointer">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Background Color</label>
-          <input type="color" name="bg_color" value="#FFFFFF" class="w-full h-10 border dark:border-gray-600 rounded-lg cursor-pointer">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Style</label>
-          <select name="dot_style" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-            <option value="square">Square</option>
-            <option value="rounded">Rounded</option>
-            <option value="circle">Dots</option>
-          </select>
-        </div>
-      </div>
-
-      <hr class="border-gray-200 dark:border-gray-600">
-      <details class="space-y-4">
-        <summary class="font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">Access Control (optional)</summary>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password Protection</label>
-            <input type="text" name="password" placeholder="Leave empty for public" maxlength="128" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Verification Code <span class="text-gray-400 text-xs">(for files only)</span></label>
-            <input type="text" name="verify_code" placeholder="Code to download files" maxlength="128" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expires At</label>
-            <input type="datetime-local" name="expires_at" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Scan Limit</label>
-            <input type="number" name="scan_limit" min="0" max="9999999" placeholder="Unlimited" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tags <span class="text-gray-400 text-xs">(comma-separated)</span></label>
-            <input type="text" name="tags" placeholder="marketing, campaign-2026, urgent" maxlength="500" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          <h2 class="font-semibold text-slate-900 dark:text-white">Access Control</h2>
+          <span class="text-xs text-slate-400 dark:text-slate-500 ml-auto">Optional</span>
+          <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform group-open:rotate-180"></i>
+        </summary>
+        <div class="px-6 pb-6 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password Protection</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="lock" class="w-4 h-4 text-slate-400"></i></div>
+                <input type="text" name="password" placeholder="Leave empty for public" maxlength="128" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Verification Code <span class="text-slate-400 text-xs font-normal">(files only)</span></label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="key-round" class="w-4 h-4 text-slate-400"></i></div>
+                <input type="text" name="verify_code" placeholder="Code to download files" maxlength="128" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Expires At</label>
+              <input type="datetime-local" name="expires_at" class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Scan Limit</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="hash" class="w-4 h-4 text-slate-400"></i></div>
+                <input type="number" name="scan_limit" min="0" max="9999999" placeholder="Unlimited" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+              </div>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Tags <span class="text-slate-400 text-xs font-normal">(comma-separated)</span></label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="tag" class="w-4 h-4 text-slate-400"></i></div>
+                <input type="text" name="tags" placeholder="marketing, campaign-2026, urgent" maxlength="500" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+              </div>
+            </div>
           </div>
         </div>
       </details>
 
-      <details class="space-y-4">
-        <summary class="font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">Advanced</summary>
-        <div class="mt-3 space-y-3">
+      <!-- Advanced -->
+      <details class="bg-white dark:bg-slate-900 rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-800/60 overflow-hidden group">
+        <summary class="px-6 py-4 flex items-center gap-3 cursor-pointer select-none">
+          <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+            <i data-lucide="settings-2" class="w-4 h-4 text-slate-600 dark:text-slate-400"></i>
+          </div>
+          <h2 class="font-semibold text-slate-900 dark:text-white">Advanced</h2>
+          <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 ml-auto transition-transform group-open:rotate-180"></i>
+        </summary>
+        <div class="px-6 pb-6 space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Webhook URL <span class="text-gray-400 text-xs">(notified on scan)</span></label>
-            <input type="url" name="webhook_url" placeholder="https://your-api.com/webhook" maxlength="500" class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Webhook URL <span class="text-slate-400 text-xs font-normal">(notified on scan)</span></label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="webhook" class="w-4 h-4 text-slate-400"></i></div>
+              <input type="url" name="webhook_url" placeholder="https://your-api.com/webhook" maxlength="500" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+            </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Internal Notes</label>
-            <textarea name="notes" rows="2" maxlength="2000" placeholder="Notes for your reference (not visible to scanners)..." class="w-full px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Internal Notes</label>
+            <textarea name="notes" rows="2" maxlength="2000" placeholder="Notes for your reference (not visible to scanners)..." class="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow"></textarea>
           </div>
         </div>
       </details>
 
-      <button id="submit-btn" type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 font-medium transition-colors">Generate QR Code</button>
+      <button id="submit-btn" type="submit" class="w-full bg-gradient-to-r from-brand-600 to-violet-600 text-white py-3 rounded-xl hover:from-brand-700 hover:to-violet-700 font-semibold text-sm transition-all btn-scale shadow-glow hover:shadow-glow-lg animate-glow-pulse">
+        Generate QR Code
+      </button>
     </form>
 
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border dark:border-gray-700 h-fit sticky top-20">
-      <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">Live Preview</h3>
-      <div id="preview-container" class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-3 flex items-center justify-center min-h-[200px]">
-        <div class="text-center text-gray-400 dark:text-gray-500 text-sm">
-          <div class="text-4xl mb-2">📱</div>
-          Preview will appear here
+    <!-- Preview Sidebar -->
+    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-800/60 h-fit sticky top-24">
+      <div class="flex items-center gap-2 mb-4">
+        <i data-lucide="eye" class="w-4 h-4 text-slate-400"></i>
+        <h3 class="font-semibold text-sm text-slate-900 dark:text-white">Live Preview</h3>
+      </div>
+      <div id="preview-container" class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 mb-4 flex items-center justify-center min-h-[220px] border border-slate-100 dark:border-slate-800">
+        <div class="text-center text-slate-400 dark:text-slate-500">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
+            <i data-lucide="qr-code" class="w-8 h-8"></i>
+          </div>
+          <p class="text-sm">Preview will appear here</p>
         </div>
       </div>
-      <p class="text-xs text-gray-400 dark:text-gray-500 text-center">QR generated server-side on submit. Colors update live below.</p>
-      <div class="grid grid-cols-2 gap-2 mt-3">
-        <div class="bg-gray-50 dark:bg-gray-900 p-2 rounded text-center">
-          <p class="text-[10px] uppercase text-gray-400">Foreground</p>
-          <p class="font-mono text-xs dark:text-white" id="fg-preview">#000000</p>
+      <p class="text-xs text-slate-400 dark:text-slate-500 text-center mb-4">QR generated server-side on submit. Colors update live below.</p>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-800">
+          <p class="text-[10px] uppercase text-slate-400 font-medium tracking-wider mb-1">Foreground</p>
+          <p class="font-mono text-xs font-semibold text-slate-900 dark:text-white" id="fg-preview">#000000</p>
         </div>
-        <div class="bg-gray-50 dark:bg-gray-900 p-2 rounded text-center">
-          <p class="text-[10px] uppercase text-gray-400">Background</p>
-          <p class="font-mono text-xs dark:text-white" id="bg-preview">#FFFFFF</p>
+        <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-800">
+          <p class="text-[10px] uppercase text-slate-400 font-medium tracking-wider mb-1">Background</p>
+          <p class="font-mono text-xs font-semibold text-slate-900 dark:text-white" id="bg-preview">#FFFFFF</p>
         </div>
       </div>
     </div>
@@ -226,7 +331,6 @@ function setContentType(t) {
   var target = document.getElementById(map[t]);
   if (target) target.classList.remove('hidden');
 }
-
 document.querySelectorAll('input[name="content_type_radio"]').forEach(function(r) {
   r.addEventListener('change', function() { setContentType(this.value); });
 });
@@ -236,14 +340,14 @@ var fileInput = document.getElementById('file-input');
 if (dropZone) {
   dropZone.addEventListener('click', function() { fileInput.click(); });
   fileInput.addEventListener('change', function() { showFile(this.files[0]); });
-  ['dragenter', 'dragover'].forEach(function(e) { dropZone.addEventListener(e, function(ev) { ev.preventDefault(); ev.stopPropagation(); dropZone.classList.add('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20'); }); });
-  ['dragleave', 'drop'].forEach(function(e) { dropZone.addEventListener(e, function(ev) { ev.preventDefault(); ev.stopPropagation(); dropZone.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20'); }); });
+  ['dragenter', 'dragover'].forEach(function(e) { dropZone.addEventListener(e, function(ev) { ev.preventDefault(); ev.stopPropagation(); dropZone.classList.add('border-brand-500', 'bg-brand-50', 'dark:bg-brand-500/10'); }); });
+  ['dragleave', 'drop'].forEach(function(e) { dropZone.addEventListener(e, function(ev) { ev.preventDefault(); ev.stopPropagation(); dropZone.classList.remove('border-brand-500', 'bg-brand-50', 'dark:bg-brand-500/10'); }); });
   dropZone.addEventListener('drop', function(ev) { if (ev.dataTransfer.files.length) { fileInput.files = ev.dataTransfer.files; showFile(ev.dataTransfer.files[0]); } });
 }
 function showFile(f) {
   if (!f) return;
   var el = document.getElementById('file-name');
-  el.textContent = '📄 ' + f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
+  el.textContent = f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
   el.classList.remove('hidden');
 }
 
@@ -268,10 +372,12 @@ document.querySelector('input[name="bg_color"]').addEventListener('input', funct
 function showToast(message, type) {
   var c = document.getElementById('toast-container');
   var t = document.createElement('div');
-  t.className = 'px-4 py-2 rounded-lg shadow-lg text-sm font-medium ' + (type === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white');
+  t.className = 'toast-enter flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium ' + (type === 'error' ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white');
   t.textContent = message;
   c.appendChild(t);
   setTimeout(function() { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(function() { t.remove(); }, 300); }, 2500);
 }
+
+document.addEventListener('DOMContentLoaded', function() { if (window.lucide) lucide.createIcons(); });
 </script>
 <%- include('partials/footer') %>
