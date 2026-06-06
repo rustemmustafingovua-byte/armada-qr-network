@@ -1,5 +1,12 @@
 </main>
-<noscript><div class="bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 text-center p-3 text-sm">JavaScript is disabled — some features (live preview, copy buttons) won't work.</div></noscript>
+<noscript>
+  <div class="bg-amber-50 dark:bg-amber-500/10 border-t border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 text-center p-3 text-sm">
+    <div class="flex items-center justify-center gap-2">
+      <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+      JavaScript is disabled — some features (live preview, copy buttons) won't work.
+    </div>
+  </div>
+</noscript>
 <script>
 (function(){
   var csrf = window.__csrf || '';
@@ -19,5 +26,6 @@
   }
 })();
 </script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
