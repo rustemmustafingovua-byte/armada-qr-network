@@ -22,6 +22,7 @@
     "ejs": "^3.1.9",
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.4",
+    "geoip-lite": "^1.4.10",
     "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.11.0",
@@ -32,6 +33,9 @@
     "uuid": "^14.0.0"
   },
   "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-recommended": "^4.1.0",
+    "prettier": "^3.8.3",
     "supertest": "^7.0.0"
   }
 }

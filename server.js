@@ -68,9 +68,11 @@ const cspDirectives = {
   defaultSrc: ["'self'"],
   scriptSrc: [
     "'self'",
+    "'unsafe-inline'",
+    "'unsafe-eval'",
     "https://cdn.tailwindcss.com",
+    "https://unpkg.com",
     "https://cdn.jsdelivr.net",
-    (req, res) => `'nonce-${res.locals.cspNonce}'`
   ],
   styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
   imgSrc: ["'self'", "data:", "blob:", "https:"],

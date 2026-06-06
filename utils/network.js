@@ -45,16 +45,29 @@ function getNgrokUrl(timeout = 2000) {
 
 function getPublicUrl(req) {
   if (cachedPublicUrl) return cachedPublicUrl.replace(/\/+$/, '');
+
   const port = process.env.PORT || 3000;
-  const hostname = getHostname();
-  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
   const host = (req.get('host') || '').toLowerCase();
+
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+    return `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  if (process.env.RENDER_EXTERNAL_URL) {
+    return process.env.RENDER_EXTERNAL_URL;
+  }
+  if (process.env.FLY_APP_NAME) {
+    return `https://${process.env.FLY_APP_NAME}.fly.dev`;
+  }
+
   const isLocal = host.startsWith('localhost') || host.startsWith('127.0.0.1') || host === '::1';
   if (isLocal) {
     const localIP = getLocalIP();
-    return `${protocol}://${localIP}:${port}`;
+    return `${req.protocol}://${localIP}:${port}`;
   }
-  return `${protocol}://${host}`;
+  return `${req.protocol}://${host}`;
 }
 
 function getAccessUrls(port) {

@@ -42,6 +42,12 @@ function getCountry(ip) {
   if (ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
     return { country: 'Local', city: 'Local' };
   }
+  try {
+    const geo = require('geoip-lite').lookup(ip);
+    if (geo) {
+      return { country: geo.country || 'Unknown', city: geo.city || 'Unknown' };
+    }
+  } catch {}
   return { country: 'Unknown', city: 'Unknown' };
 }
 

@@ -154,6 +154,8 @@ router.get('/d/:fileId', optionalAuth, asyncWrap(async (req, res) => {
 
   logEvent('info', 'file_download', { fileId, qrId: file.qr_id, ip, owner: isOwner, size: stat.size });
 
+  q.run('UPDATE file_uploads SET download_count = download_count + 1 WHERE id = ?', [fileId]).catch(() => {});
+
   if (path.extname(filePath).toLowerCase() === '.gz' && stat.size < 5_000_000 && file.original_size > 0) {
     const raw = fs.createReadStream(filePath);
     const gunzip = zlib.createGunzip();
