@@ -1,22 +1,29 @@
 <%- include('partials/header') %>
 <div class="max-w-2xl mx-auto mt-4 sm:mt-8 px-2 fade-in">
-  <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-md dark:shadow-2xl border dark:border-gray-700">
+  <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl shadow-card dark:shadow-2xl border border-slate-200/60 dark:border-slate-800/60">
     <div class="text-center mb-6">
-      <div class="text-5xl mb-3">📁</div>
-      <h1 class="text-xl font-bold dark:text-white break-words"><%= title %></h1>
-      <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
-        <% if (owner) { %><span class="text-indigo-600 dark:text-indigo-400 font-medium">👁 Owner preview</span> — visitors will see this
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center mb-3">
+        <i data-lucide="folder-open" class="w-7 h-7 text-brand-500"></i>
+      </div>
+      <h1 class="text-xl font-bold text-slate-900 dark:text-white break-words"><%= title %></h1>
+      <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">
+        <% if (owner) { %><span class="badge badge-blue"><i data-lucide="eye" class="w-3 h-3"></i> Owner preview</span> — visitors will see this
         <% } else { %>Files available for download<% } %>
       </p>
     </div>
 
     <% if (hasVerifyCode && !verified) { %>
-    <div id="verify-section" class="bg-gray-50 dark:bg-gray-900 rounded-lg p-5 mb-6 border dark:border-gray-700">
-      <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">🔐 Verification Required</h3>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Enter the verification code to access files and send messages</p>
+    <div id="verify-section" class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-5 mb-6 border border-slate-100 dark:border-slate-800">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="shield-check" class="w-5 h-5 text-brand-500"></i>
+        <h3 class="font-semibold text-slate-900 dark:text-white">Verification Required</h3>
+      </div>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Enter the verification code to access files and send messages</p>
       <div class="flex gap-2">
-        <input type="text" id="verify-code-input" placeholder="Enter code" autocomplete="off" class="flex-1 px-3 py-2.5 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        <button onclick="verifyCode()" id="verify-btn" class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 font-medium text-sm btn-scale">Verify</button>
+        <input type="text" id="verify-code-input" placeholder="Enter code" autocomplete="off" class="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+        <button onclick="verifyCode()" id="verify-btn" class="flex items-center gap-1.5 bg-gradient-to-r from-brand-600 to-violet-600 text-white px-5 py-2.5 rounded-xl hover:from-brand-700 hover:to-violet-700 font-semibold text-sm btn-scale shadow-glow hover:shadow-glow-lg whitespace-nowrap">
+          <i data-lucide="check" class="w-4 h-4"></i> Verify
+        </button>
       </div>
       <p id="verify-error" class="text-red-500 text-sm mt-2 hidden"></p>
     </div>
@@ -25,43 +32,52 @@
     <div id="content-section" class="<%= (hasVerifyCode && !verified) ? 'hidden' : '' %>">
       <% if (files.length === 0) { %>
       <div class="text-center py-8">
-        <p class="text-gray-400 dark:text-gray-500">No files attached to this QR code</p>
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3"><i data-lucide="file-x" class="w-7 h-7 text-slate-300 dark:text-slate-600"></i></div>
+        <p class="text-slate-400 dark:text-slate-500 text-sm">No files attached to this QR code</p>
       </div>
       <% } else { %>
       <div class="space-y-2 mb-6">
         <% files.forEach(function(f) { %>
-        <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-900 rounded-lg px-4 py-3 border dark:border-gray-700">
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium dark:text-white truncate"><%= f.original_name %></p>
-            <p class="text-xs text-gray-400 dark:text-gray-500">
-              <%= f.original_size > 1048576 ? (f.original_size / 1048576).toFixed(1) + ' MB' : f.original_size > 1024 ? (f.original_size / 1024).toFixed(1) + ' KB' : f.original_size + ' B' %>
-            </p>
+        <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 rounded-xl px-4 py-3 border border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-lg bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center flex-shrink-0"><i data-lucide="file" class="w-5 h-5 text-brand-500"></i></div>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-slate-900 dark:text-white truncate"><%= f.original_name %></p>
+              <p class="text-xs text-slate-400 dark:text-slate-500">
+                <%= f.original_size > 1048576 ? (f.original_size / 1048576).toFixed(1) + ' MB' : f.original_size > 1024 ? (f.original_size / 1024).toFixed(1) + ' KB' : f.original_size + ' B' %>
+              </p>
+            </div>
           </div>
           <a href="/d/<%= f.id %>"
-             class="btn-scale bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-xs font-medium whitespace-nowrap ml-3 download-link">
-            ⬇ Download
+             class="flex items-center gap-1.5 bg-brand-600 text-white px-4 py-2 rounded-xl hover:bg-brand-700 text-xs font-medium whitespace-nowrap ml-3 btn-scale download-link transition-all">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i> Download
           </a>
         </div>
         <% }); %>
       </div>
       <% } %>
 
-      <hr class="border-gray-200 dark:border-gray-700 my-6">
+      <div class="section-divider my-6"></div>
 
       <div id="chat-section">
-        <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">💬 Send a Message</h3>
-        <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Your message will be delivered to the owner of this QR code</p>
+        <div class="flex items-center gap-2 mb-3">
+          <i data-lucide="message-square" class="w-4 h-4 text-slate-400"></i>
+          <h3 class="font-semibold text-sm text-slate-900 dark:text-white">Send a Message</h3>
+        </div>
+        <p class="text-xs text-slate-400 dark:text-slate-500 mb-4">Your message will be delivered to the owner of this QR code</p>
 
-        <div id="chat-messages" class="space-y-3 mb-4 max-h-80 overflow-y-auto bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border dark:border-gray-700">
-          <p class="text-xs text-gray-400 dark:text-gray-500 text-center py-2">No messages yet</p>
+        <div id="chat-messages" class="space-y-3 mb-4 max-h-80 overflow-y-auto bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
+          <p class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">No messages yet</p>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-2 mb-2">
-          <input type="text" id="chat-name" placeholder="Your name (optional)" maxlength="100" class="sm:w-1/3 px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          <input type="text" id="chat-input" placeholder="Type your message..." maxlength="2000" class="flex-1 px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" onkeydown="if(event.key==='Enter')sendMessage()">
-          <button onclick="sendMessage()" id="chat-send-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium text-sm btn-scale whitespace-nowrap">Send</button>
+          <input type="text" id="chat-name" placeholder="Your name (optional)" maxlength="100" class="sm:w-1/3 px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow">
+          <input type="text" id="chat-input" placeholder="Type your message..." maxlength="2000" class="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 focus:outline-none transition-all input-glow" onkeydown="if(event.key==='Enter')sendMessage()">
+          <button onclick="sendMessage()" id="chat-send-btn" class="flex items-center justify-center gap-1.5 bg-brand-600 text-white px-5 py-2.5 rounded-xl hover:bg-brand-700 font-semibold text-sm btn-scale whitespace-nowrap transition-all">
+            <i data-lucide="send" class="w-4 h-4"></i> Send
+          </button>
         </div>
-        <p id="chat-status" class="text-xs text-gray-400 dark:text-gray-500 hidden"></p>
+        <p id="chat-status" class="text-xs text-slate-400 dark:text-slate-500 hidden"></p>
       </div>
     </div>
   </div>
@@ -141,10 +157,10 @@ function addMessage(msg, isNew) {
   var container = document.getElementById('chat-messages');
   if (container.querySelector('p.text-xs.text-center')) container.innerHTML = '';
   var div = document.createElement('div');
-  div.className = 'bg-white dark:bg-gray-800 rounded-lg px-3 py-2 border dark:border-gray-700' + (isNew ? ' border-indigo-300 dark:border-indigo-600' : '');
-  div.innerHTML = '<div class="flex justify-between items-start gap-2"><span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">' + escapeHtml(msg.sender_name) + '</span><span class="text-xs text-gray-400 whitespace-nowrap">' + (msg.created_at || 'just now') + '</span></div><p class="text-sm dark:text-white mt-1 break-words">' + escapeHtml(msg.message) + '</p>';
+  div.className = 'bg-white dark:bg-slate-900 rounded-xl px-4 py-3 border border-slate-100 dark:border-slate-800' + (isNew ? ' border-brand-300 dark:border-brand-500/30' : '');
+  div.innerHTML = '<div class="flex justify-between items-start gap-2"><span class="text-xs font-semibold text-brand-600 dark:text-brand-400">' + escapeHtml(msg.sender_name) + '</span><span class="text-xs text-slate-400 whitespace-nowrap">' + (msg.created_at || 'just now') + '</span></div><p class="text-sm text-slate-900 dark:text-white mt-1.5 break-words">' + escapeHtml(msg.message) + '</p>';
   if (msg.reply) {
-    div.innerHTML += '<div class="mt-2 pl-3 border-l-2 border-green-400 bg-green-50 dark:bg-green-900/30 rounded-r px-2 py-1"><span class="text-xs font-medium text-green-600 dark:text-green-400">↩ Owner reply:</span><p class="text-sm dark:text-gray-200 mt-1 break-words">' + escapeHtml(msg.reply) + '</p></div>';
+    div.innerHTML += '<div class="mt-2.5 pl-3 border-l-2 border-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 rounded-r-lg px-3 py-2"><span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Owner reply:</span><p class="text-sm text-slate-700 dark:text-slate-300 mt-1 break-words">' + escapeHtml(msg.reply) + '</p></div>';
   }
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
@@ -176,7 +192,7 @@ function showError(id, msg) {
 function showToast(message, type) {
   var c = document.getElementById('toast-container');
   var t = document.createElement('div');
-  t.className = 'px-4 py-2 rounded-lg shadow-lg text-sm font-medium ' + (type === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white');
+  t.className = 'toast-enter flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium ' + (type === 'error' ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white');
   t.textContent = message;
   c.appendChild(t);
   setTimeout(function() { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(function() { t.remove(); }, 300); }, 2500);
@@ -185,5 +201,6 @@ function showToast(message, type) {
 <% if (verified) { %>
 loadMessages();
 <% } %>
+document.addEventListener('DOMContentLoaded', function() { if (window.lucide) lucide.createIcons(); });
 </script>
 <%- include('partials/footer') %>

@@ -1,9 +1,15 @@
 <%- include('partials/header') %>
-<div class="max-w-2xl mx-auto mt-8 sm:mt-16 px-2 fade-in">
-  <div class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-md dark:shadow-2xl border dark:border-gray-700">
-    <h1 class="text-xl font-bold mb-4 dark:text-white break-words"><%= title %></h1>
-    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 whitespace-pre-wrap font-mono text-sm dark:text-gray-200 break-words"><%= text %></div>
-    <p class="text-xs text-gray-400 dark:text-gray-500 mt-4">QR ID: <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded"><%= qrId %></code></p>
+<div class="max-w-2xl mx-auto mt-8 sm:mt-16 px-4 fade-in">
+  <div class="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl shadow-card dark:shadow-2xl border border-slate-200/60 dark:border-slate-800/60">
+    <div class="text-center mb-5">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center mb-4">
+        <i data-lucide="file-text" class="w-7 h-7 text-brand-500"></i>
+      </div>
+      <h1 class="text-xl font-bold text-slate-900 dark:text-white break-words"><%= title %></h1>
+    </div>
+    <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 whitespace-pre-wrap font-mono text-sm text-slate-700 dark:text-slate-300 break-words border border-slate-100 dark:border-slate-800"><%= text %></div>
+    <p class="text-xs text-slate-400 dark:text-slate-500 mt-4 text-center">QR ID: <code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono"><%= qrId %></code></p>
   </div>
 </div>
+<script>document.addEventListener('DOMContentLoaded', function() { if (window.lucide) lucide.createIcons(); });</script>
 <%- include('partials/footer') %>
