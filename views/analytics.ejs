@@ -1,80 +1,119 @@
 <%- include('partials/header') %>
-<div class="max-w-4xl mx-auto fade-in">
-  <div class="flex justify-between items-center mb-6">
+<div class="max-w-5xl mx-auto fade-in">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
     <div>
-      <h1 class="text-2xl font-bold dark:text-white">Analytics: <%= qr.title || 'Untitled' %></h1>
-      <p class="text-gray-500 dark:text-gray-400 text-sm">QR ID: <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded dark:text-gray-300"><%= qr.id %></code></p>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Analytics</h1>
+      <p class="text-slate-500 dark:text-slate-400 text-sm mt-1"><%= qr.title || 'Untitled' %> &middot; <code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs font-mono"><%= qr.id %></code></p>
     </div>
     <div class="flex gap-2 items-center">
-      <a href="/analytics/<%= qr.id %>/export" class="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded hover:bg-gray-300 dark:hover:bg-gray-600">📊 Export CSV</a>
-      <div class="text-right">
-        <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400"><%= totalScans %></p>
-        <p class="text-gray-500 dark:text-gray-400 text-xs uppercase">Total Scans</p>
+      <a href="/analytics/<%= qr.id %>/export" class="flex items-center gap-1.5 text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 font-medium transition-all">
+        <i data-lucide="download" class="w-3.5 h-3.5"></i> Export CSV
+      </a>
+      <div class="text-right bg-gradient-to-br from-brand-500 to-violet-600 text-white px-5 py-3 rounded-2xl shadow-glow">
+        <p class="text-2xl font-bold"><%= totalScans %></p>
+        <p class="text-white/70 text-[10px] uppercase tracking-wider font-medium">Total Scans</p>
       </div>
     </div>
   </div>
 
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-    <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
-      <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Unique</p>
-      <p class="text-xl font-bold dark:text-white"><%= uniqueScans || 0 %></p>
+  <!-- Stat Cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    <div class="gradient-border-card rounded-2xl p-4 card-hover">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center"><i data-lucide="users" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i></div>
+        <p class="text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider font-medium">Unique</p>
+      </div>
+      <p class="text-2xl font-bold text-slate-900 dark:text-white"><%= uniqueScans || 0 %></p>
     </div>
-    <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
-      <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Today</p>
-      <p class="text-xl font-bold dark:text-white" id="today-scans">-</p>
+    <div class="gradient-border-card rounded-2xl p-4 card-hover">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-cyan-50 dark:bg-cyan-500/10 flex items-center justify-center"><i data-lucide="calendar-check" class="w-4 h-4 text-cyan-600 dark:text-cyan-400"></i></div>
+        <p class="text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider font-medium">Today</p>
+      </div>
+      <p class="text-2xl font-bold text-slate-900 dark:text-white" id="today-scans">-</p>
     </div>
-    <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
-      <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">This Week</p>
-      <p class="text-xl font-bold dark:text-white" id="week-scans">-</p>
+    <div class="gradient-border-card rounded-2xl p-4 card-hover">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center"><i data-lucide="calendar-range" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i></div>
+        <p class="text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider font-medium">This Week</p>
+      </div>
+      <p class="text-2xl font-bold text-slate-900 dark:text-white" id="week-scans">-</p>
     </div>
-    <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border dark:border-gray-700">
-      <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Content Type</p>
-      <p class="text-xl font-bold dark:text-white"><%= qr.content_type %></p>
+    <div class="gradient-border-card rounded-2xl p-4 card-hover">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center"><i data-lucide="layers" class="w-4 h-4 text-violet-600 dark:text-violet-400"></i></div>
+        <p class="text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider font-medium">Content Type</p>
+      </div>
+      <p class="text-2xl font-bold text-slate-900 dark:text-white capitalize"><%= qr.content_type %></p>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
-      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Scans (Last 30 Days)</h3>
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
+    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-800/60">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center"><i data-lucide="trending-up" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i></div>
+        <h3 class="font-semibold text-sm text-slate-900 dark:text-white">Scans (Last 30 Days)</h3>
+      </div>
       <canvas id="scansChart" height="200"></canvas>
     </div>
-    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
-      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Scans by Hour</h3>
+    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-800/60">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-cyan-50 dark:bg-cyan-500/10 flex items-center justify-center"><i data-lucide="clock" class="w-4 h-4 text-cyan-600 dark:text-cyan-400"></i></div>
+        <h3 class="font-semibold text-sm text-slate-900 dark:text-white">Scans by Hour</h3>
+      </div>
       <canvas id="hourlyChart" height="200"></canvas>
     </div>
-    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
-      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Operating Systems</h3>
+    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-800/60">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center"><i data-lucide="monitor" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i></div>
+        <h3 class="font-semibold text-sm text-slate-900 dark:text-white">Operating Systems</h3>
+      </div>
       <canvas id="osChart" height="200"></canvas>
     </div>
-    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
-      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Devices</h3>
+    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-800/60">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center"><i data-lucide="smartphone" class="w-4 h-4 text-violet-600 dark:text-violet-400"></i></div>
+        <h3 class="font-semibold text-sm text-slate-900 dark:text-white">Devices</h3>
+      </div>
       <canvas id="deviceChart" height="200"></canvas>
     </div>
-    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
-      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Browsers</h3>
+    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-800/60">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center"><i data-lucide="globe" class="w-4 h-4 text-amber-600 dark:text-amber-400"></i></div>
+        <h3 class="font-semibold text-sm text-slate-900 dark:text-white">Browsers</h3>
+      </div>
       <canvas id="browserChart" height="200"></canvas>
     </div>
-    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700">
-      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">Top Referrers</h3>
+    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-800/60">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center"><i data-lucide="external-link" class="w-4 h-4 text-rose-600 dark:text-rose-400"></i></div>
+        <h3 class="font-semibold text-sm text-slate-900 dark:text-white">Top Referrers</h3>
+      </div>
       <canvas id="refererChart" height="200"></canvas>
     </div>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden mb-6">
-    <div class="px-4 py-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400">Countries</h3>
+  <!-- Countries -->
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-800/60 overflow-hidden mb-8">
+    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+      <i data-lucide="map" class="w-4 h-4 text-slate-400"></i>
+      <h3 class="font-semibold text-sm text-slate-900 dark:text-white">Countries</h3>
     </div>
     <table class="w-full text-sm">
-      <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase"><tr><th class="text-left px-4 py-2">Country</th><th class="text-right px-4 py-2">Scans</th><th class="text-right px-4 py-2 w-32">Distribution</th></tr></thead>
-      <tbody class="divide-y dark:divide-gray-700">
-        <% if (countryStats.length === 0) { %><tr><td class="px-4 py-3 text-gray-400 dark:text-gray-500 text-center" colspan="3">No data yet</td></tr><% } %>
+      <thead class="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+        <tr><th class="text-left px-5 py-3 font-semibold">Country</th><th class="text-right px-5 py-3 font-semibold">Scans</th><th class="text-right px-5 py-3 w-36 font-semibold">Distribution</th></tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+        <% if (countryStats.length === 0) { %><tr><td class="px-5 py-6 text-center text-slate-400 dark:text-slate-500" colspan="3">No data yet</td></tr><% } %>
         <% countryStats.forEach(function(c) { %>
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-          <td class="px-4 py-2 dark:text-white"><%= c.country %></td>
-          <td class="px-4 py-2 text-right font-mono dark:text-white"><%= c.count %></td>
-          <td class="px-4 py-2">
-            <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-              <div class="bg-indigo-600 h-2" style="width:<%= (c.count / totalScans * 100).toFixed(1) %>%"></div>
+        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+          <td class="px-5 py-3 font-medium text-slate-900 dark:text-white"><%= c.country %></td>
+          <td class="px-5 py-3 text-right font-mono text-slate-900 dark:text-white font-semibold"><%= c.count %></td>
+          <td class="px-5 py-3">
+            <div class="progress-bar">
+              <div class="progress-bar-fill bg-gradient-to-r from-brand-500 to-violet-500" style="width:<%= (c.count / totalScans * 100).toFixed(1) %>%"></div>
             </div>
           </td>
         </tr>
@@ -83,31 +122,48 @@
     </table>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden mb-6">
-    <div class="px-4 py-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex justify-between items-center">
-      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400">Recent Scans</h3>
-      <span class="text-xs text-gray-400 dark:text-gray-500">Last 100</span>
+  <!-- Recent Scans -->
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-800/60 overflow-hidden mb-8">
+    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <i data-lucide="scan-eye" class="w-4 h-4 text-slate-400"></i>
+        <h3 class="font-semibold text-sm text-slate-900 dark:text-white">Recent Scans</h3>
+      </div>
+      <span class="text-xs text-slate-400 dark:text-slate-500">Last 100</span>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
-        <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase">
-          <tr><th class="text-left px-4 py-2">Time</th><th class="text-left px-4 py-2">Device</th><th class="text-left px-4 py-2">OS</th><th class="text-left px-4 py-2">Browser</th><th class="text-left px-4 py-2">Country</th><th class="text-left px-4 py-2">IP</th></tr>
+        <thead class="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+          <tr><th class="text-left px-5 py-3 font-semibold">Time</th><th class="text-left px-5 py-3 font-semibold">Device</th><th class="text-left px-5 py-3 font-semibold">OS</th><th class="text-left px-5 py-3 font-semibold">Browser</th><th class="text-left px-5 py-3 font-semibold">Country</th><th class="text-left px-5 py-3 font-semibold">IP</th></tr>
         </thead>
-        <tbody class="divide-y dark:divide-gray-700">
-          <% if (recentScans.length === 0) { %><tr><td class="px-4 py-3 text-gray-400 dark:text-gray-500 text-center" colspan="6">No scans yet</td></tr><% } %>
-          <% recentScans.forEach(function(s) { %><tr class="hover:bg-gray-50 dark:hover:bg-gray-700"><td class="px-4 py-2 text-xs dark:text-gray-300 whitespace-nowrap"><%= s.scanned_at %></td><td class="px-4 py-2 dark:text-white"><%= s.device_type %></td><td class="px-4 py-2 dark:text-white"><%= s.os %></td><td class="px-4 py-2 dark:text-white"><%= s.browser %></td><td class="px-4 py-2 dark:text-white"><%= s.country %></td><td class="px-4 py-2 text-xs text-gray-400 dark:text-gray-500"><%= s.ip_address %></td></tr><% }) %>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+          <% if (recentScans.length === 0) { %><tr><td class="px-5 py-6 text-center text-slate-400 dark:text-slate-500" colspan="6">No scans yet</td></tr><% } %>
+          <% recentScans.forEach(function(s) { %>
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <td class="px-5 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap"><%= s.scanned_at %></td>
+            <td class="px-5 py-3 text-slate-900 dark:text-white"><%= s.device_type %></td>
+            <td class="px-5 py-3 text-slate-900 dark:text-white"><%= s.os %></td>
+            <td class="px-5 py-3 text-slate-900 dark:text-white"><%= s.browser %></td>
+            <td class="px-5 py-3 text-slate-900 dark:text-white"><%= s.country %></td>
+            <td class="px-5 py-3 text-xs text-slate-400 dark:text-slate-500 font-mono"><%= s.ip_address %></td>
+          </tr>
+          <% }) %>
         </tbody>
       </table>
     </div>
   </div>
 
-  <div id="messages-section" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden mb-6">
-    <div class="px-4 py-3 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex justify-between items-center">
-      <h3 class="font-semibold text-sm text-gray-600 dark:text-gray-400">💬 Messages from Users</h3>
-      <span class="text-xs text-gray-400 dark:text-gray-500" id="msg-count">Loading...</span>
+  <!-- Messages -->
+  <div id="messages-section" class="bg-white dark:bg-slate-900 rounded-2xl shadow-card border border-slate-200/60 dark:border-slate-800/60 overflow-hidden mb-8">
+    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <i data-lucide="message-square" class="w-4 h-4 text-slate-400"></i>
+        <h3 class="font-semibold text-sm text-slate-900 dark:text-white">Messages from Users</h3>
+      </div>
+      <span class="text-xs text-slate-400 dark:text-slate-500" id="msg-count">Loading...</span>
     </div>
-    <div id="messages-list" class="divide-y dark:divide-gray-700 max-h-[500px] overflow-y-auto">
-      <div class="px-4 py-6 text-center text-gray-400 dark:text-gray-500 text-sm">Loading messages...</div>
+    <div id="messages-list" class="divide-y divide-slate-100 dark:divide-slate-800 max-h-[500px] overflow-y-auto">
+      <div class="px-5 py-8 text-center text-slate-400 dark:text-slate-500 text-sm">Loading messages...</div>
     </div>
   </div>
 </div>
@@ -117,7 +173,7 @@ fetch('/api/messages/<%= qr.id %>').then(function(r){return r.json()}).then(func
   var container = document.getElementById('messages-list');
   var countEl = document.getElementById('msg-count');
   if (!d.messages || d.messages.length === 0) {
-    container.innerHTML = '<div class="px-4 py-6 text-center text-gray-400 dark:text-gray-500 text-sm">No messages yet</div>';
+    container.innerHTML = '<div class="px-5 py-8 text-center text-slate-400 dark:text-slate-500 text-sm">No messages yet</div>';
     countEl.textContent = '0';
     return;
   }
@@ -125,12 +181,12 @@ fetch('/api/messages/<%= qr.id %>').then(function(r){return r.json()}).then(func
   container.innerHTML = '';
   d.messages.forEach(function(m) {
     var div = document.createElement('div');
-    div.className = 'px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700' + (m.is_read ? '' : ' bg-indigo-50 dark:bg-indigo-900/20');
-    div.innerHTML = '<div class="flex justify-between items-start gap-2"><span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">' + esc(m.sender_name) + '</span><span class="text-xs text-gray-400 whitespace-nowrap">' + m.created_at + '</span></div><p class="text-sm dark:text-white mt-1 break-words">' + esc(m.message) + '</p>';
+    div.className = 'px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors' + (m.is_read ? '' : ' bg-brand-50/50 dark:bg-brand-500/5');
+    div.innerHTML = '<div class="flex justify-between items-start gap-2"><span class="text-xs font-semibold text-brand-600 dark:text-brand-400">' + esc(m.sender_name) + '</span><span class="text-xs text-slate-400 whitespace-nowrap">' + m.created_at + '</span></div><p class="text-sm text-slate-900 dark:text-white mt-1.5 break-words">' + esc(m.message) + '</p>';
     if (m.reply) {
-      div.innerHTML += '<div class="mt-2 pl-3 border-l-2 border-green-400 bg-green-50 dark:bg-green-900/30 rounded-r px-2 py-1"><span class="text-xs font-medium text-green-600 dark:text-green-400">↩ Your reply:</span><p class="text-sm dark:text-gray-200 mt-1 break-words">' + esc(m.reply) + '</p></div>';
+      div.innerHTML += '<div class="mt-2.5 pl-3 border-l-2 border-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 rounded-r-lg px-3 py-2"><span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Your reply:</span><p class="text-sm text-slate-700 dark:text-slate-300 mt-1 break-words">' + esc(m.reply) + '</p></div>';
     } else {
-      div.innerHTML += '<div class="mt-2 flex gap-2"><input type="text" id="reply-input-' + m.id + '" placeholder="Type reply..." maxlength="2000" class="flex-1 px-2 py-1 text-xs border dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:outline-none" onkeydown="if(event.key===\'Enter\')replyTo(' + m.id + ')"><button onclick="replyTo(' + m.id + ')" class="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 font-medium">Reply</button></div>';
+      div.innerHTML += '<div class="mt-2.5 flex gap-2"><input type="text" id="reply-input-' + m.id + '" placeholder="Type reply..." maxlength="2000" class="flex-1 px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-brand-500/30 focus:outline-none" onkeydown="if(event.key===\'Enter\')replyTo(' + m.id + ')"><button onclick="replyTo(' + m.id + ')" class="text-xs bg-emerald-500 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-600 font-medium transition-colors">Reply</button></div>';
     }
     if (!m.is_read) {
       fetch('/api/messages/read/' + m.id, { method: 'POST' }).catch(function(){});
@@ -138,7 +194,7 @@ fetch('/api/messages/<%= qr.id %>').then(function(r){return r.json()}).then(func
     container.appendChild(div);
   });
 }).catch(function(){
-  document.getElementById('messages-list').innerHTML = '<div class="px-4 py-6 text-center text-gray-400 dark:text-gray-500 text-sm">Failed to load messages</div>';
+  document.getElementById('messages-list').innerHTML = '<div class="px-5 py-8 text-center text-slate-400 dark:text-slate-500 text-sm">Failed to load messages</div>';
 });
 
 function replyTo(id) {
@@ -170,45 +226,47 @@ document.getElementById('week-scans').textContent = scansData.filter(function(d)
 
 initChart('scansChart', {
   type: 'line',
-  data: { labels: scansData.map(function(d) { return d.date; }), datasets: [{ label: 'Scans', data: scansData.map(function(d) { return d.count; }), borderColor: '#4f46e5', fill: true, backgroundColor: 'rgba(79,70,229,0.1)', tension: 0.3 }] },
-  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } } }
+  data: { labels: scansData.map(function(d) { return d.date; }), datasets: [{ label: 'Scans', data: scansData.map(function(d) { return d.count; }), borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99,102,241,0.08)', tension: 0.4, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, pointHoverBackgroundColor: '#6366f1' }] },
+  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } } }
 });
 
 var hourlyData = <%- hourlyStats %>;
 var hours = Array.from({length: 24}, function(_, i) { var h = String(i).padStart(2, '0'); var found = hourlyData.find(function(d) { return String(d.hour) === h; }); return found ? found.count : 0; });
 initChart('hourlyChart', {
   type: 'bar',
-  data: { labels: Array.from({length:24}, function(_,i){return i+':00'}), datasets: [{ label: 'Scans', data: hours, backgroundColor: '#06b6d4' }] },
-  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } } }
+  data: { labels: Array.from({length:24}, function(_,i){return i+':00'}), datasets: [{ label: 'Scans', data: hours, backgroundColor: '#06b6d4', borderRadius: 4 }] },
+  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } } }
 });
 
 var osData = <%- osStats %>;
 initChart('osChart', {
   type: 'doughnut',
-  data: { labels: osData.map(function(d) { return d.os; }), datasets: [{ data: osData.map(function(d) { return d.count; }), backgroundColor: ['#4f46e5','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6'] }] },
-  options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
+  data: { labels: osData.map(function(d) { return d.os; }), datasets: [{ data: osData.map(function(d) { return d.count; }), backgroundColor: ['#6366f1','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6'], borderWidth: 0, spacing: 2 }] },
+  options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12 } } }, cutout: '65%' }
 });
 
 var deviceData = <%- deviceStats %>;
 initChart('deviceChart', {
-  type: 'pie',
-  data: { labels: deviceData.map(function(d) { return d.device_type; }), datasets: [{ data: deviceData.map(function(d) { return d.count; }), backgroundColor: ['#4f46e5','#06b6d4','#10b981'] }] },
-  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  type: 'doughnut',
+  data: { labels: deviceData.map(function(d) { return d.device_type; }), datasets: [{ data: deviceData.map(function(d) { return d.count; }), backgroundColor: ['#6366f1','#06b6d4','#10b981'], borderWidth: 0, spacing: 2 }] },
+  options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12 } } }, cutout: '65%' }
 });
 
 var browserData = <%- browserStats %>;
 initChart('browserChart', {
   type: 'bar',
-  data: { labels: browserData.map(function(d) { return d.browser; }), datasets: [{ label: 'Scans', data: browserData.map(function(d) { return d.count; }), backgroundColor: '#8b5cf6' }] },
-  options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } } }
+  data: { labels: browserData.map(function(d) { return d.browser; }), datasets: [{ label: 'Scans', data: browserData.map(function(d) { return d.count; }), backgroundColor: '#8b5cf6', borderRadius: 4 }] },
+  options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { grid: { display: false } } } }
 });
 
 var refData = <%- refererStats %>;
 if (refData.length === 0) refData = [{ referer: 'Direct', count: <%= totalScans %> }];
 initChart('refererChart', {
   type: 'doughnut',
-  data: { labels: refData.map(function(d) { var r = d.referer || 'Direct'; try { return new URL(r).hostname; } catch { return r.substring(0, 30); } }), datasets: [{ data: refData.map(function(d) { return d.count; }), backgroundColor: ['#4f46e5','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] },
-  options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
+  data: { labels: refData.map(function(d) { var r = d.referer || 'Direct'; try { return new URL(r).hostname; } catch { return r.substring(0, 30); } }), datasets: [{ data: refData.map(function(d) { return d.count; }), backgroundColor: ['#6366f1','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6'], borderWidth: 0, spacing: 2 }] },
+  options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12 } } }, cutout: '65%' }
 });
+
+document.addEventListener('DOMContentLoaded', function() { if (window.lucide) lucide.createIcons(); });
 </script>
 <%- include('partials/footer') %>
