@@ -4,9 +4,12 @@ node_modules/
 db/*.db
 db/*.db-shm
 db/*.db-wal
+db/test-*.db*
 public/uploads/*
 !public/uploads/.gitkeep
 *.log
+logs/
+backups/
 .DS_Store
 coverage/
 .nyc_output/
