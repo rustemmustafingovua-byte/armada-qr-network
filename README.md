@@ -166,7 +166,18 @@ node tests/integration.test.js
 - [x] Auto-purge old webhook deliveries
 - [x] Graceful shutdown drains connections
 
+## Monetization
+
+This project earns through x402 micropayments, API key tiers, and hosted subscriptions. See package.json `funding` field and the live deployment for pay-per-call pricing.
+
+---
+
 ## License
 
 MIT
 # Force rebuild Sat Jun  6 01:05:57 EEST 2026
+
+
+---
+
+⭐ **Star us on GitHub** — it helps others find the project.

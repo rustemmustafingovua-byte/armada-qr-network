@@ -42,5 +42,20 @@
     "eslint-config-recommended": "^4.1.0",
     "prettier": "^3.8.3",
     "supertest": "^7.0.0"
-  }
+  },
+  "funding": {
+    "custom": [
+      "https://github.com/sponsors/rustemmustafingovua-byte"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rustemmustafingovua-byte/armada-qr-network.git"
+  },
+  "keywords": [
+    "open-source",
+    "developer-tools"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/rustemmustafingovua-byte/armada-qr-network#readme"
 }

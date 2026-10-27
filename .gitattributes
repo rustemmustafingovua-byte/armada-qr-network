@@ -1,0 +1,10 @@
+# Git attributes
+* text=auto
+
+# Detect diff for common config formats
+*.json diff=json
+*.md  diff=markdown
+*.yml diff=yaml
+*.yaml diff=yaml
+*.sol linguist-language=Solidity
+*.ts  linguist-language=TypeScript
