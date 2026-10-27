@@ -17,12 +17,14 @@ router.post('/api/messages/:qrId', asyncWrap(async (req, res) => {
   const message = (req.body.message || '').substring(0, 2000);
   if (!message.trim()) return res.status(400).json({ error: 'Message is required' });
 
-  await q.run(
+  const result = await q.run(
     'INSERT INTO qr_messages (qr_id, sender_name, message) VALUES (?, ?, ?)',
     [qrId, senderName, message.trim()]
   );
-
-  const msg = await q.get('SELECT id, sender_name, message, created_at FROM qr_messages WHERE id = last_insert_rowid()');
+  const msg = await q.get(
+    'SELECT id, sender_name, message, created_at FROM qr_messages WHERE id = ?',
+    [result.lastInsertRowid]
+  );
   res.json({ success: true, message: msg });
 }));
 

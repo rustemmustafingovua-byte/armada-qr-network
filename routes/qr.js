@@ -17,7 +17,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const router = express.Router();
 const uploadDir = path.resolve(__dirname, '..', process.env.UPLOAD_DIR || './public/uploads');
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
-const MAX_FILE_SIZE = 200 * 1024 * 1024;
+const MAX_FILE_SIZE = parseInt(process.env.MAX_UPLOAD_SIZE || '200', 10) * 1024 * 1024;
 
 function csrfCheckSync(req) {
   const token = req.headers['x-csrf-token'] || req.body?._csrf;

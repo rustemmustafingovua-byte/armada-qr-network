@@ -17,9 +17,12 @@ function fixSQL(sql) {
 
 if (process.env.DATABASE_URL) {
   const { Pool } = require('pg');
+  const pgSsl = process.env.PG_SSL_REJECT_UNAUTHORIZED === 'false'
+    ? { rejectUnauthorized: false }
+    : { rejectUnauthorized: true };
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: pgSsl,
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,

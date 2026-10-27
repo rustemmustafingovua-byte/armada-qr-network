@@ -86,4 +86,4 @@ function getAccessUrls(port) {
   return urls;
 }
 
-module.exports = { getLocalIP, getHostname, getNgrokUrl, getPublicUrl, setNgrokUrl, getPublicCachedUrl: () => cachedPublicUrl, getAccessUrls };
+module.exports = { getLocalIP, getHostname, getNgrokUrl, getPublicUrl, setNgrokUrl, getAccessUrls };

@@ -26,23 +26,4 @@ function validateHexColor(color) {
   return /^#[0-9a-fA-F]{6}$/.test(color);
 }
 
-function generateCsrfToken() {
-  return crypto.randomBytes(32).toString('hex');
-}
-
-function csrfProtection(req, res, next) {
-  if (!req.session) req.session = {};
-  if (!req.session.csrfToken) req.session.csrfToken = generateCsrfToken();
-  if (req.method === 'GET') {
-    res.locals.csrfToken = req.session.csrfToken;
-    return next();
-  }
-  const token = req.body && req.body._csrf;
-  if (!token || token !== req.session.csrfToken) {
-    return res.status(403).send('CSRF token invalid');
-  }
-  req.session.csrfToken = generateCsrfToken();
-  next();
-}
-
-module.exports = { sanitize, validateEmail, validateId, validateUrl, validateHexColor, generateCsrfToken, csrfProtection };
+module.exports = { sanitize, validateEmail, validateId, validateUrl, validateHexColor };

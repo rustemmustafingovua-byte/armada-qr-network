@@ -31,6 +31,11 @@ for (const key of REQUIRED_ENV) {
     process.exit(1);
   }
 }
+const MAX_UPLOAD_SIZE = parseInt(process.env.MAX_UPLOAD_SIZE || '200', 10);
+if (!Number.isFinite(MAX_UPLOAD_SIZE) || MAX_UPLOAD_SIZE <= 0) {
+  console.error('FATAL: MAX_UPLOAD_SIZE must be a positive number (MB)');
+  process.exit(1);
+}
 if (!process.env.JWT_SECRET) {
   if (IS_PROD) {
     const secretFile = path.join(__dirname, '.jwt-secret');
@@ -234,7 +239,7 @@ app.get('/', (req, res) => res.redirect(302, '/dashboard'));
 app.get('/lang/:lang', (req, res) => {
   const lang = ['en', 'ru'].includes(req.params.lang) ? req.params.lang : 'en';
   res.cookie('lang', lang, { maxAge: 365 * 24 * 60 * 60 * 1000, path: '/' });
-  res.redirect('back' || '/dashboard');
+  res.redirect(req.get('referrer') || '/dashboard');
 });
 app.get('/robots.txt', (req, res) => res.type('text/plain').send('User-agent: *\nDisallow: /'));
 app.get('/favicon.ico', (req, res) => res.status(204).end());
