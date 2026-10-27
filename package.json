@@ -54,7 +54,15 @@
   },
   "keywords": [
     "open-source",
-    "developer-tools"
+    "developer-tools",
+    "qr-code",
+    "analytics",
+    "2fa",
+    "api",
+    "webhooks",
+    "enterprise",
+    "security",
+    "rest-api"
   ],
   "license": "MIT",
   "homepage": "https://github.com/rustemmustafingovua-byte/armada-qr-network#readme"
