@@ -24,7 +24,7 @@ const app = express();
 const PORT = parseInt(process.env.PORT, 10) || 3000;
 const IS_PROD = process.env.NODE_ENV === 'production';
 
-const REQUIRED_ENV = [];
+const REQUIRED_ENV = ['JWT_SECRET', 'BCRYPT_ROUNDS'];
 for (const key of REQUIRED_ENV) {
   if (!process.env[key]) {
     console.error(`FATAL: Missing required environment variable: ${key}`);
@@ -68,13 +68,11 @@ const cspDirectives = {
   defaultSrc: ["'self'"],
   scriptSrc: [
     "'self'",
-    "'unsafe-inline'",
-    "'unsafe-eval'",
     "https://cdn.tailwindcss.com",
     "https://unpkg.com",
     "https://cdn.jsdelivr.net",
   ],
-  styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
+  styleSrc: ["'self'", "https://cdn.tailwindcss.com"],
   imgSrc: ["'self'", "data:", "blob:", "https:"],
   connectSrc: ["'self'", "blob:"],
   fontSrc: ["'self'", "data:"],

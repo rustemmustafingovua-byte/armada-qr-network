@@ -47,7 +47,7 @@ Enterprise-grade dynamic QR code platform with analytics, 2FA, API, webhooks, an
 npm install
 npm start
 # → http://localhost:3000
-# Default admin: admin@armada.com / admin123 (change immediately!)
+# Default admin: admin@armada.com / <generated on first start> (change immediately!)
 ```
 
 ## Environment Variables

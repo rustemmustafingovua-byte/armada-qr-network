@@ -567,12 +567,14 @@ async function ensureAdmin() {
       console.log(`  ✓ User ${firstUser.id} promoted to admin`);
     } else {
       const bcrypt = require('bcryptjs');
-      const hash = await bcrypt.hash('admin123', 12);
+      const defaultPassword = process.env.ADMIN_DEFAULT_PASSWORD || crypto.randomBytes(12).toString('hex');
+      const hash = await bcrypt.hash(defaultPassword, parseInt(process.env.BCRYPT_ROUNDS || '12'));
       const insertQuery = db.type === 'postgres'
         ? 'INSERT INTO users (email, password_hash, name, role) VALUES ($1, $2, $3, $4)'
         : 'INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)';
       await db.prepare(insertQuery).run('admin@armada.com', hash, 'Admin', 'admin');
-      console.log('  ✓ Default admin created: admin@armada.com / admin123');
+      console.log(`  ✓ Default admin created: admin@armada.com / ${defaultPassword}`);
+      console.log(`  ⚠ Change this password immediately after first login`);
     }
   } catch (e) {
     console.error('Admin check error:', e.message);
